@@ -20,8 +20,6 @@ object ThermisManager {
         val bitmap = Receiptify.buildReceipt(receiptDTO)
         if (bitmap != null) {
             DantsuPrintManager.printUsb(bitmap)
-            DantsuPrintManager.printUsb(bitmap)
-            DantsuPrintManager.printUsb(bitmap)
         }
     }
 

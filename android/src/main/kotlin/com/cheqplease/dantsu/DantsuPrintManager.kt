@@ -10,6 +10,8 @@ import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.os.Build
 import android.os.Parcelable
+import android.util.Log
+import com.cheqplease.thermis.utils.PrintingQueue
 import com.dantsu.escposprinter.EscPosPrinter
 import com.dantsu.escposprinter.connection.usb.UsbConnection
 import com.dantsu.escposprinter.connection.usb.UsbPrintersConnections
@@ -20,6 +22,7 @@ import java.lang.ref.WeakReference
 object DantsuPrintManager {
 
     private lateinit var context: WeakReference<Context>
+    private var isReceiverRegistered = false
 
     fun init(context: Context) {
         DantsuPrintManager.context = WeakReference<Context>(context)
@@ -39,22 +42,30 @@ object DantsuPrintManager {
             )
             val filter = IntentFilter(ACTION_USB_PERMISSION)
 
-            context.get()?.registerReceiver(object : BroadcastReceiver() {
-                override fun onReceive(context: Context?, intent: Intent) {
-                    val action = intent.action
-                    if (ACTION_USB_PERMISSION == action) {
-                        synchronized(this) {
-                            val usbServiceManager = context?.getSystemService(Context.USB_SERVICE) as UsbManager?
-                            val usbDevice = intent.getParcelableExtra<Parcelable>(UsbManager.EXTRA_DEVICE) as UsbDevice?
-                            if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                                if (usbServiceManager != null && usbDevice != null) {
-                                    print(usbServiceManager,usbDevice,bitmap)
+            if(!isReceiverRegistered){
+                Log.d("PRINT----->>>>>", "Registering Receiver")
+                isReceiverRegistered = true
+                context.get()?.registerReceiver(object : BroadcastReceiver() {
+                    override fun onReceive(context: Context?, intent: Intent) {
+                        val action = intent.action
+                        if (ACTION_USB_PERMISSION == action) {
+                            synchronized(this) {
+                                val usbServiceManager = context?.getSystemService(Context.USB_SERVICE) as UsbManager?
+                                val usbDevice = intent.getParcelableExtra<Parcelable>(UsbManager.EXTRA_DEVICE) as UsbDevice?
+                                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                                    if (usbServiceManager != null && usbDevice != null) {
+                                        PrintingQueue.addPrintingTask(Runnable {
+                                        print(usbServiceManager, usbDevice, bitmap)
+                                            Log.d("PRINT----->>>>>", "Executing Printing Task")
+                                        })
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            }, filter)
+                }, filter)
+            }
+
 
             usbManager.requestPermission(usbConnection.device, permissionIntent)
         }
@@ -65,6 +76,7 @@ object DantsuPrintManager {
         val height: Int = bitmap.height
         var textToPrint = ""
         val printer = EscPosPrinter(UsbConnection(usbManager, usbDevice), 200, 72f, 47)
+
         var y = 0
         while (y < height) {
             val newBitmap = Bitmap.createBitmap(
@@ -80,8 +92,9 @@ object DantsuPrintManager {
             y += 256
         }
 
-        printer.printFormattedTextAndCut(textToPrint,60f)
-
+        printer.printFormattedText(textToPrint)
+        printer.printFormattedText(textToPrint)
+        printer.disconnectPrinter()
     }
 
 }
