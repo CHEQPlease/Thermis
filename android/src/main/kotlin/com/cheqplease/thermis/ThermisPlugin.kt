@@ -24,17 +24,38 @@ class ThermisPlugin: FlutterPlugin, MethodCallHandler {
     this.applicationContext = applicationContext
     channel = MethodChannel(messenger, "thermis")
     channel.setMethodCallHandler(this)
+    ThermisManager.init(applicationContext)
   }
 
 
   override fun onMethodCall(call: MethodCall, result: Result) {
     if (call.method == "print_cheq_receipt") {
       val receiptDTO = call.argument<String>("receipt_dto_json")
-      ThermisManager.init(applicationContext)
+      val openCashDrawer = call.argument<Boolean>("open_cash_drawer") ?: false
       if (receiptDTO != null) {
-        ThermisManager.printCheqReceipt(receiptDTO,false)
-      };
-    } else {
+        ThermisManager.printCheqReceipt(receiptDTO,openCashDrawer)
+        result.success(true)
+      }
+      else{
+        result.success(false)
+      }
+    }
+
+    else if (call.method == "open_cash_drawer"){
+      ThermisManager.openCashDrawer()
+      result.success(true)
+    }
+
+    else if (call.method == "cut_paper"){
+      ThermisManager.cutPaper()
+      result.success(true)
+    }
+
+    else if (call.method == "check_printer_connection"){
+      result.success(ThermisManager.checkPrinterConnection())
+    }
+
+    else {
       result.notImplemented()
     }
   }

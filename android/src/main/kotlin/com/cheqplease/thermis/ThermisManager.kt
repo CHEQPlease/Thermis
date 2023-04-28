@@ -18,13 +18,16 @@ object ThermisManager {
     fun printCheqReceipt(receiptDTO: String,shouldOpenCashDrawer: Boolean = false) {
         val bitmap = Receiptify.buildReceipt(receiptDTO)
         if (bitmap != null) {
-            DantsuPrintManager.printBitmap(bitmap,shouldOpenCashDrawer)
-            DantsuPrintManager.cutPaper()
+            DantsuPrintManager.requestPrintBitmap(bitmap,shouldOpenCashDrawer)
         }
     }
 
     fun openCashDrawer(){
-        DantsuPrintManager.openCashDrawer()
+        DantsuPrintManager.requestOpenCashDrawer()
+    }
+
+    fun cutPaper(){
+        DantsuPrintManager.requestCutPaper()
     }
 
     fun checkPrinterConnection() : Boolean{
