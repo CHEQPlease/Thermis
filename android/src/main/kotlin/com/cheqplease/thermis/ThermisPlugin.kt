@@ -32,7 +32,7 @@ class ThermisPlugin: FlutterPlugin, MethodCallHandler {
       val receiptDTO = call.argument<String>("receipt_dto_json")
       ThermisManager.init(applicationContext)
       if (receiptDTO != null) {
-        ThermisManager.printCheqReceipt(receiptDTO)
+        ThermisManager.printCheqReceipt(receiptDTO,false)
       };
     } else {
       result.notImplemented()

@@ -3,7 +3,6 @@ package com.cheqplease.thermis
 import android.content.Context
 import com.cheq.receiptify.Receiptify
 import com.cheqplease.dantsu.DantsuPrintManager
-import com.google.gson.Gson
 import java.lang.ref.WeakReference
 
 object ThermisManager {
@@ -16,11 +15,20 @@ object ThermisManager {
         Receiptify.init(context)
 
     }
-    fun printCheqReceipt(receiptDTO: String) {
+    fun printCheqReceipt(receiptDTO: String,shouldOpenCashDrawer: Boolean = false) {
         val bitmap = Receiptify.buildReceipt(receiptDTO)
         if (bitmap != null) {
-            DantsuPrintManager.printUsb(bitmap)
+            DantsuPrintManager.printBitmap(bitmap,shouldOpenCashDrawer)
+            DantsuPrintManager.cutPaper()
         }
+    }
+
+    fun openCashDrawer(){
+        DantsuPrintManager.openCashDrawer()
+    }
+
+    fun checkPrinterConnection() : Boolean{
+        return DantsuPrintManager.checkConnection()
     }
 
 
