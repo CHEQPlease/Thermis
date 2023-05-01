@@ -6,14 +6,14 @@ A flutter plugin for CHEQ flutter apps to print CHEQ receipts through USB Therma
 **Printing a Receipt**
 
 Allowed Values for receiptType :  
-**CUSTOMER_P 
-MERCHANT_P 
-KITCHEN_P
-KIOSK_P
-CUSTOMER_H
-MERCHANT_H
-KITCHEN_H
-KIOSK_H**
+**CUSTOMER_P** 
+**MERCHANT_P** 
+**KITCHEN_P**
+**KIOSK_P**
+**CUSTOMER_H**
+**MERCHANT_H**
+**KITCHEN_H**
+**KIOSK_H**
 
 Details  
 **CUSTOMER** : Customer Receipt  
