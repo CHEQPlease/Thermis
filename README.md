@@ -1,52 +1,31 @@
+
 ## Thermis
 
 A flutter plugin for CHEQ flutter apps to print CHEQ receipts through USB Thermal Printer.
 
-Allowed Values for receiptType :  
-CUSTOMER_P
-MERCHANT_P
-KITCHEN_P
-KIOSK_P
-CUSTOMER_H
-MERCHANT_H
-KITCHEN_H
-KIOSK_H
-
-Details  
-CUSTOMER : Customer Receipt  
-MERCHANT : Merchant Receipt  
-KITCHEN : Kitchen Receipt  
-KIOSK : Kiosk Receipt
-
-H -  Handheld  
-P -  POS
-
-If we want to print a receipt for a customer from a handheld device, we need to use **CUSTOMER_H**  
-Similarly, if we want to print a receipt for a merchant from a POS device, we need to use **MERCHANT_P**
-
 **Printing a Receipt**
 
 Allowed Values for receiptType :  
-CUSTOMER_P
-MERCHANT_P
+**CUSTOMER_P 
+MERCHANT_P 
 KITCHEN_P
 KIOSK_P
 CUSTOMER_H
 MERCHANT_H
 KITCHEN_H
-KIOSK_H
+KIOSK_H**
 
 Details  
-CUSTOMER : Customer Receipt  
-MERCHANT : Merchant Receipt  
-KITCHEN : Kitchen Receipt  
-KIOSK : Kiosk Receipt
-
-H -  Handheld  
-P -  POS
-
+**CUSTOMER** : Customer Receipt  
+**MERCHANT** : Merchant Receipt  
+**KITCHEN** : Kitchen Receipt  
+**KIOSK** : Kiosk Receipt  
+  
+**H** -  Handheld  
+**P** -  POS  
+  
 If we want to print a receipt for a customer from a handheld device, we need to use **CUSTOMER_H**  
-Similarly, if we want to print a receipt for a merchant from a POS device, we need to use **MERCHANT_P**
+Similarly, if we want to print a receipt for a merchant from a POS device, we need to use **MERCHANT_P** 
 
 Prepare a receipt a JSON string (Receipt DTO) based on order object and send it to thermis for printing.
 
