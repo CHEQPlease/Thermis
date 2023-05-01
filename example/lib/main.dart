@@ -41,11 +41,10 @@ class _MyAppState extends State<MyApp> {
           children: [
             ElevatedButton(
               onPressed: () async {
-
                 String receiptDTOJSON = await DefaultAssetBundle.of(context).loadString('assets/data.json');
-                await _thermisPlugin.printCHEQReceipt(receiptDTOJSON);
-              },
-              child: const Text("Test Print"),
+                await Thermis.printCHEQReceipt(receiptDTOJSON);
+              },              child: const Text("Test Print"),
+
             )
           ],
         ),

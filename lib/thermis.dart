@@ -2,19 +2,19 @@
 import 'thermis_platform_interface.dart';
 
 class Thermis {
-  Future<String?> printCHEQReceipt(String receiptDTOJSON){
+  static Future<String?> printCHEQReceipt(String receiptDTOJSON){
     return ThermisPlatform.instance.printCHEQReceipt(receiptDTOJSON);
   }
 
-  Future<bool?> openCashDrawer(){
+  static Future<bool?> openCashDrawer(){
     return ThermisPlatform.instance.openCashDrawer();
   }
 
-  Future<bool?> cutPaper(){
+  static Future<bool?> cutPaper(){
     return ThermisPlatform.instance.cutPaper();
   }
 
-  Future <bool?> checkPrinterConnection(){
+  static Future <bool?> isPrinterConnected(){
     return ThermisPlatform.instance.checkPrinterConnection();
   }
 }
