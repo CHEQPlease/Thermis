@@ -13,4 +13,20 @@ class MethodChannelThermis extends ThermisPlatform {
   Future<String?> printCHEQReceipt(String receiptDTOJSON) async {
    return await methodChannel.invokeMethod<String>('print_cheq_receipt',{"receipt_dto_json" : receiptDTOJSON});
   }
+
+  @override
+  Future<bool?> openCashDrawer() async {
+    return await methodChannel.invokeMethod<bool>('open_cash_drawer');
+  }
+
+  @override
+  Future<bool?> cutPaper() async {
+    return await methodChannel.invokeMethod<bool>('cut_paper');
+  }
+
+  @override
+  Future<bool?> checkPrinterConnection() async {
+    return await methodChannel.invokeMethod<bool>('check_printer_connection');
+  }
+
 }
