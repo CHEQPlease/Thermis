@@ -23,7 +23,6 @@ thermis:
 Prepare a receipt a JSON string (Receipt DTO) based on order object and send it to thermis for printing.
 ```css
 	   //Preapare JSON DTO   
-	   
 	   String receiptDTOJSON = 
 			""" 
 			{
@@ -33,7 +32,8 @@ Prepare a receipt a JSON string (Receipt DTO) based on order object and send it 
 		   "totalItems":"2",
 		   "orderNo":"K10",
 		   "tableNo":"234",
-		   "receiptType":"kiosk_p", 
+		   "receiptType":"customer",
+		   "deviceType": "handheld"
 		   "timeOfOrder":"Placed at : 01/12/2023 03:57 AM AKST",
 		   "items":[
 		      {
@@ -118,6 +118,7 @@ Prepare a receipt a JSON string (Receipt DTO) based on order object and send it 
 
 	   // Send the DTO to Thermis for Printing
        await Thermis.printCHEQReceipt(receiptDTOJSON);
+
 ```
 **Check for Printer USB Connection**
 ```css
