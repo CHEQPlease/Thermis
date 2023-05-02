@@ -1,5 +1,6 @@
 
 
+
 ## Thermis
 
 A flutter plugin for CHEQ flutter apps to print CHEQ receipts through USB Thermal Printer. 
@@ -132,15 +133,8 @@ Prepare a receipt a JSON string (Receipt DTO) based on order object and send it 
 ```
 
 
-<style>
-mark{
-    color:red;
-     font-weight:  bold;
-}
-</style>
-
-<mark> **Note**</mark>
-
+Note
+---------------
 **Supported values for "receiptType" :**
 *Customer
 Merchant
