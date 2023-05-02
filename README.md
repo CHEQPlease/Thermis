@@ -1,58 +1,32 @@
+
+
+
 ## Thermis
 
-A flutter plugin for CHEQ flutter apps to print CHEQ receipts through USB Thermal Printer.
+A flutter plugin for CHEQ flutter apps to print CHEQ receipts through USB Thermal Printer. 
 
-Allowed Values for receiptType :  
-CUSTOMER_P
-MERCHANT_P
-KITCHEN_P
-KIOSK_P
-CUSTOMER_H
-MERCHANT_H
-KITCHEN_H
-KIOSK_H
+Thermis uses [Receiptify](https://github.com/CHEQPlease/Receiptify) under the hood to generate receipts.
 
-Details  
-CUSTOMER : Customer Receipt  
-MERCHANT : Merchant Receipt  
-KITCHEN : Kitchen Receipt  
-KIOSK : Kiosk Receipt
+**How to use ?**
+This plugin in yet not published on [pub.dev](https://pub.dev). Yet you can use this git repository directly in you project.
 
-H -  Handheld  
-P -  POS
+Add this line on your **pubspec.yaml**
 
-If we want to print a receipt for a customer from a handheld device, we need to use **CUSTOMER_H**  
-Similarly, if we want to print a receipt for a merchant from a POS device, we need to use **MERCHANT_P**
+```yaml
+thermis:
+    git:
+      url: https://github.com/CHEQPlease/Thermis.git
+      ref: release/1.0.0
+```
 
 **Printing a Receipt**
-
-Allowed Values for receiptType :  
-CUSTOMER_P
-MERCHANT_P
-KITCHEN_P
-KIOSK_P
-CUSTOMER_H
-MERCHANT_H
-KITCHEN_H
-KIOSK_H
-
-Details  
-CUSTOMER : Customer Receipt  
-MERCHANT : Merchant Receipt  
-KITCHEN : Kitchen Receipt  
-KIOSK : Kiosk Receipt
-
-H -  Handheld  
-P -  POS
-
-If we want to print a receipt for a customer from a handheld device, we need to use **CUSTOMER_H**  
-Similarly, if we want to print a receipt for a merchant from a POS device, we need to use **MERCHANT_P**
-
 Prepare a receipt a JSON string (Receipt DTO) based on order object and send it to thermis for printing.
-
+```css
 	   //Preapare JSON DTO   
+	   
 	   String receiptDTOJSON = 
-			   """ {
+			""" 
+			{
 		   "brandName":"CHEQ Diner1",
 		   "orderType":"Self-Order",
 		   "orderSubtitle":"Kiosk-Order",
@@ -66,14 +40,14 @@ Prepare a receipt a JSON string (Receipt DTO) based on order object and send it 
 		         "itemName":"Salmon Fry",
 		         "description":"  -- Olive\n  -- Deep Fried Salmon\n  -- ADD Addition 1\n  -- no Nuts\n  -- no Olive Oil\n  -- Substitution 1 SUB\n  -- allergy 1 ALLERGY\n",
 		         "quantity":"1",
-		         "price":"$10.0",
+		         "price":"\$10.0",
 		         "strikethrough":false
 		      },
 		      {
 		         "itemName":"Water + Apple Pay",
 		         "description":"  -- Onions\n",
 		         "quantity":"1",
-		         "price":"$1.0",
+		         "price":"\$3.0",
 		         "strikethrough":true
 		      }
 		   ],
@@ -105,56 +79,69 @@ Prepare a receipt a JSON string (Receipt DTO) based on order object and send it 
 		      },
 		      {
 		         "key":"Sub Total",
-		         "value":"$21.01",
+		         "value":"\$21.01",
 		         "important":null
 		      },
 		      {
 		         "key":"Area Tax",
-		         "value":"$1.00",
+		         "value":"\$1.00",
 		         "important":null
 		      },
 		      {
 		         "key":"VAT",
-		         "value":"$2.10",
+		         "value":"\$2.10",
 		         "important":null
 		      },
 		      {
 		         "key":"Customer Fee",
-		         "value":"$0.63",
+		         "value":"\$0.63",
 		         "important":null
 		      },
 		      {
 		         "key":"Service Fee",
-		         "value":"$0.91",
+		         "value":"\$0.91",
 		         "important":null
 		      },
 		      {
 		         "key":"Tax",
-		         "value":"$0.01",
+		         "value":"\$0.01",
 		         "important":null
 		      },
 		      {
 		         "key":"GRAND TOTAL",
-		         "value":"$25.66",
+		         "value":"\$25.66",
 		         "important":true
 		      }
 		   ]
-		}"""
+		}
+		""";
 
 	   // Send the DTO to Thermis for Printing
        await Thermis.printCHEQReceipt(receiptDTOJSON);
-
+```
 **Check for Printer USB Connection**
-
+```css
     await Thermis.isPrinterConnected();
-
+```
 **Opening the Cash Drawer**
-
+```css
     await Thermis.openCashDrawer();
-
+```
 **Cut Receipt Paper**
-
+```css
     Thermis.cutPaper();
+```
 
 
-    
+Note
+---------------
+**Supported values for "receiptType" :**
+*Customer
+Merchant
+Kitchen
+Kiosk*
+
+**Supported values for "deviceType":**
+*POS
+Handheld*
+ 
