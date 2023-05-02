@@ -131,14 +131,23 @@ Prepare a receipt a JSON string (Receipt DTO) based on order object and send it 
     Thermis.cutPaper();
 ```
 
-**Note** :
+
+<style>
+mark{
+    color:red;
+     font-weight:  bold;
+}
+</style>
+
+<mark> **Note**</mark>
+
 **Supported values for "receiptType" :**
-Customer,
-Merchant,
-Kitchen,
-Kiosk
+*Customer
+Merchant
+Kitchen
+Kiosk*
 
 **Supported values for "deviceType":**
-POS,
-Handheld
+*POS
+Handheld*
  
