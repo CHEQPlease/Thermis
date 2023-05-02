@@ -8,6 +8,7 @@ A flutter plugin for CHEQ flutter apps to print CHEQ receipts through USB Therma
 Thermis uses [Receiptify](https://github.com/CHEQPlease/Receiptify) under the hood to generate receipts.
 
 **How to use ?**
+---
 This plugin in yet not published on [pub.dev](https://pub.dev). Yet you can use this git repository directly in you project.
 
 Add this line on your **pubspec.yaml**
@@ -20,10 +21,10 @@ thermis:
 ```
 
 **Printing a Receipt**
+--
 Prepare a receipt a JSON string (Receipt DTO) based on order object and send it to thermis for printing.
 ```css
 	   //Preapare JSON DTO   
-	   
 	   String receiptDTOJSON = 
 			""" 
 			{
@@ -33,7 +34,8 @@ Prepare a receipt a JSON string (Receipt DTO) based on order object and send it 
 		   "totalItems":"2",
 		   "orderNo":"K10",
 		   "tableNo":"234",
-		   "receiptType":"kiosk_p", 
+		   "receiptType":"customer",
+		   "deviceType": "handheld"
 		   "timeOfOrder":"Placed at : 01/12/2023 03:57 AM AKST",
 		   "items":[
 		      {
@@ -54,58 +56,47 @@ Prepare a receipt a JSON string (Receipt DTO) based on order object and send it 
 		   "breakdown":[
 		      {
 		         "key":"Payment Type",
-		         "value":"Card",
-		         "important":null
+		         "value":"Card"
 		      },
 		      {
 		         "key":"Card Type",
-		         "value":"mc",
-		         "important":null
+		         "value":"mc"
 		      },
 		      {
 		         "key":"Card #:",
-		         "value":"541333 **** 9999",
-		         "important":null
+		         "value":"541333 **** 9999"
 		      },
 		      {
 		         "key":"Card Entry",
-		         "value":"CONTACTLESS",
-		         "important":null
+		         "value":"CONTACTLESS"
 		      },
 		      {
 		         "key":"",
-		         "value":"",
-		         "important":null
+		         "value":""
 		      },
 		      {
 		         "key":"Sub Total",
-		         "value":"\$21.01",
-		         "important":null
+		         "value":"\$21.01"
 		      },
 		      {
 		         "key":"Area Tax",
-		         "value":"\$1.00",
-		         "important":null
+		         "value":"\$1.00"
 		      },
 		      {
 		         "key":"VAT",
-		         "value":"\$2.10",
-		         "important":null
+		         "value":"\$2.10"
 		      },
 		      {
 		         "key":"Customer Fee",
-		         "value":"\$0.63",
-		         "important":null
+		         "value":"\$0.63"
 		      },
 		      {
 		         "key":"Service Fee",
-		         "value":"\$0.91",
-		         "important":null
+		         "value":"\$0.91"
 		      },
 		      {
 		         "key":"Tax",
-		         "value":"\$0.01",
-		         "important":null
+		         "value":"\$0.01"
 		      },
 		      {
 		         "key":"GRAND TOTAL",
@@ -118,16 +109,21 @@ Prepare a receipt a JSON string (Receipt DTO) based on order object and send it 
 
 	   // Send the DTO to Thermis for Printing
        await Thermis.printCHEQReceipt(receiptDTOJSON);
+
 ```
 **Check for Printer USB Connection**
+--
 ```css
     await Thermis.isPrinterConnected();
 ```
+
 **Opening the Cash Drawer**
+--
 ```css
     await Thermis.openCashDrawer();
 ```
 **Cut Receipt Paper**
+--
 ```css
     Thermis.cutPaper();
 ```
@@ -136,12 +132,12 @@ Prepare a receipt a JSON string (Receipt DTO) based on order object and send it 
 Note
 ---------------
 **Supported values for "receiptType" :**
-*Customer
-Merchant
-Kitchen
+*Customer,
+Merchant,
+Kitchen,
 Kiosk*
 
 **Supported values for "deviceType":**
-*POS
+*POS,
 Handheld*
  
