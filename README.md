@@ -8,6 +8,7 @@ A flutter plugin for CHEQ flutter apps to print CHEQ receipts through USB Therma
 Thermis uses [Receiptify](https://github.com/CHEQPlease/Receiptify) under the hood to generate receipts.
 
 **How to use ?**
+---
 This plugin in yet not published on [pub.dev](https://pub.dev). Yet you can use this git repository directly in you project.
 
 Add this line on your **pubspec.yaml**
@@ -20,6 +21,7 @@ thermis:
 ```
 
 **Printing a Receipt**
+--
 Prepare a receipt a JSON string (Receipt DTO) based on order object and send it to thermis for printing.
 ```css
 	   //Preapare JSON DTO   
@@ -121,14 +123,18 @@ Prepare a receipt a JSON string (Receipt DTO) based on order object and send it 
 
 ```
 **Check for Printer USB Connection**
+--
 ```css
     await Thermis.isPrinterConnected();
 ```
+
 **Opening the Cash Drawer**
+--
 ```css
     await Thermis.openCashDrawer();
 ```
 **Cut Receipt Paper**
+--
 ```css
     Thermis.cutPaper();
 ```
