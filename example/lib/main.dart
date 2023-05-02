@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:thermis/thermis.dart';
 
 void main() {
@@ -16,7 +15,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final _thermisPlugin = Thermis();
   String demotext = "Demo Text";
 
   @override
@@ -43,8 +41,8 @@ class _MyAppState extends State<MyApp> {
               onPressed: () async {
                 String receiptDTOJSON = await DefaultAssetBundle.of(context).loadString('assets/data.json');
                 await Thermis.printCHEQReceipt(receiptDTOJSON);
-              },              child: const Text("Test Print"),
-
+              },
+              child: const Text("Test Print"),
             )
           ],
         ),
