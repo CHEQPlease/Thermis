@@ -157,7 +157,7 @@ object DantsuPrintManager {
         if (shouldOpenCashDrawer) {
             printer.printFormattedTextAndOpenCashBox(textToPrint,20f)
         }else{
-            printer.printFormattedTextAndCut(textToPrint)
+            printer.printFormattedTextAndCut(textToPrint,22f)
         }
         printer.disconnectPrinter()
     }
