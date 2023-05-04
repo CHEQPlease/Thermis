@@ -5,7 +5,8 @@
   "totalItems": "2",
   "orderNo": "K10",
   "tableNo": "234",
-  "receiptType": "kiosk_p",
+  "receiptType": "kiosk",
+  "deviceType" : "pos",
   "timeOfOrder": "Placed at : 01/12/2023 03:57 AM AKST",
   "items": [
     {

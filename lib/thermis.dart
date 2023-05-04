@@ -2,7 +2,7 @@
 import 'thermis_platform_interface.dart';
 
 class Thermis {
-  static Future<String?> printCHEQReceipt(String receiptDTOJSON){
+  static Future<bool?> printCHEQReceipt(String receiptDTOJSON){
     return ThermisPlatform.instance.printCHEQReceipt(receiptDTOJSON);
   }
 
