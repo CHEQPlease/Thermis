@@ -10,8 +10,8 @@ class MethodChannelThermis extends ThermisPlatform {
   final methodChannel = const MethodChannel('thermis');
 
   @override
-  Future<String?> printCHEQReceipt(String receiptDTOJSON) async {
-   return await methodChannel.invokeMethod<String>('print_cheq_receipt',{"receipt_dto_json" : receiptDTOJSON});
+  Future<bool?> printCHEQReceipt(String receiptDTOJSON) async {
+   return await methodChannel.invokeMethod<bool>('print_cheq_receipt',{"receipt_dto_json" : receiptDTOJSON});
   }
 
   @override

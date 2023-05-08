@@ -35,7 +35,9 @@ Prepare a receipt a JSON string (Receipt DTO) based on order object and send it 
 		   "orderNo":"K10",
 		   "tableNo":"234",
 		   "receiptType":"customer",
-		   "deviceType": "handheld"
+		   "deviceType": "handheld",
+		   "isRefunded":false,
+		   "isReprinted":false,
 		   "timeOfOrder":"Placed at : 01/12/2023 03:57 AM AKST",
 		   "items":[
 		      {
