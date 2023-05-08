@@ -8,6 +8,9 @@
   "receiptType": "kiosk",
   "deviceType" : "pos",
   "timeOfOrder": "Placed at : 01/12/2023 03:57 AM AKST",
+  "isRefunded": false,
+  "isReprinted" : false,
+  "paymentQRLink" : "https://www.google.com",
   "items": [
     {
       "itemName": "Salmon Fry",
@@ -85,5 +88,74 @@
       "value": "$25.66",
       "important": true
     }
-  ]
+  ],
+  "gratuityInfo": {
+    "gratuityItems": [
+      {
+        "tip": "❏ $1.0 tip = $1.00 ,",
+        "total": "TOTAL =  $93.00"
+      },
+      {
+        "tip": "❏ $3.0 tip = $3.00 ,",
+        "total": "TOTAL =  $93.00"
+      },
+      {
+        "tip": "❏ $100.0 tip = $5.00 ,",
+        "total": "TOTAL =  $95.00"
+      }
+    ],
+    "isSignatureNeeded": true
+  },
+  "serverTipInfo": {
+    "serverName": "Shorol",
+    "serverId": "(123333330022)",
+    "totalTip": " $200.19",
+    "tipInfoBreakdown": [
+      {
+        "key": "Placed at",
+        "value": "24,april, 2023"
+      },
+      {
+        "key": "Device Name",
+        "value": "Kiosk_1"
+      },
+      {
+        "key": "Device Name",
+        "value": "KIOSK_14"
+      },
+      {
+        "key": "Device Name",
+        "value": "KIOSK_14"
+      }
+    ],
+    "tipPerRevenueCenter": [
+      {
+        "name": "Obie's",
+        "tip": "$120",
+        "deviceList": [
+          "KIOSK_1",
+          "KIOSK_2",
+          "KIOSK_3"
+        ]
+      },
+      {
+        "name": "Python Cook House",
+        "tip": "$210.22",
+        "deviceList": [
+          "KIOSK_4",
+          "KIOSK_2",
+          "KIOSK_5"
+        ]
+      },
+      {
+        "name": "Grill House",
+        "tip": "$10.22",
+        "deviceList": [
+          "KIOSK_4",
+          "KIOSK_2"
+        ]
+      }
+    ]
+  }
+
 }
