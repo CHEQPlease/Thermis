@@ -204,10 +204,12 @@ Prepare a receipt a JSON string (Receipt DTO) based on order object and send it 
 Note
 ---------------
 **Supported values for "receiptType" :**
-*Customer,
-Merchant,
-Kitchen,
-Kiosk*
+*CUSTOMER, 
+MERCHANT, 
+KITCHEN, 
+KIOSK, 
+SERVER_TIPS, 
+QR_PAYMENT*
 
 **Supported values for "deviceType":**
 *POS,
