@@ -1,6 +1,7 @@
 package com.cheqplease.thermis
 
 import android.content.Context
+import android.graphics.Bitmap
 import com.cheq.receiptify.Receiptify
 import com.cheqplease.dantsu.DantsuPrintManager
 import java.lang.ref.WeakReference
@@ -20,6 +21,10 @@ object ThermisManager {
         if (bitmap != null) {
             DantsuPrintManager.requestPrintBitmap(bitmap,shouldOpenCashDrawer)
         }
+    }
+
+    fun previewReceipt(receiptDTO: String) : Bitmap? {
+        return Receiptify.buildReceipt(receiptDTO)
     }
 
     fun openCashDrawer(){

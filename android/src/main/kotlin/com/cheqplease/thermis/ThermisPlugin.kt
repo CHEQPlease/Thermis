@@ -1,14 +1,19 @@
 package com.cheqplease.thermis
 
 import android.content.Context
-import androidx.annotation.NonNull
-
+import android.graphics.Bitmap
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
+
 
 /** ThermisPlugin */
 class ThermisPlugin: FlutterPlugin, MethodCallHandler {
@@ -28,6 +33,7 @@ class ThermisPlugin: FlutterPlugin, MethodCallHandler {
   }
 
 
+  @OptIn(DelicateCoroutinesApi::class)
   override fun onMethodCall(call: MethodCall, result: Result) {
     if (call.method == "print_cheq_receipt") {
       val receiptDTO = call.argument<String>("receipt_dto_json")
@@ -53,6 +59,25 @@ class ThermisPlugin: FlutterPlugin, MethodCallHandler {
 
     else if (call.method == "check_printer_connection"){
       result.success(ThermisManager.checkPrinterConnection())
+    }
+
+    else if(call.method == "preview_receipt")
+    {
+      val receiptDTO = call.argument<String>("receipt_dto_json")
+      if (receiptDTO != null) {
+        GlobalScope.launch(Dispatchers.IO) {
+          val bitmap = ThermisManager.previewReceipt(receiptDTO)
+          val stream = ByteArrayOutputStream()
+          bitmap?.compress(Bitmap.CompressFormat.PNG, 100, stream)
+          val image = stream.toByteArray()
+          result.success(image)
+        }
+
+      }
+      else{
+        result.success(null)
+      }
+
     }
 
     else {

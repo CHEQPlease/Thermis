@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -16,6 +18,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String demotext = "Demo Text";
+  Uint8List? imageBytes;
 
   @override
   void initState() {
@@ -40,10 +43,17 @@ class _MyAppState extends State<MyApp> {
             ElevatedButton(
               onPressed: () async {
                 String receiptDTOJSON = await DefaultAssetBundle.of(context).loadString('assets/data.json');
-                await Thermis.printCHEQReceipt(receiptDTOJSON);
+                imageBytes = await Thermis.previewReceipt(receiptDTOJSON);
+                setState(() {});
               },
               child: const Text("Test Print"),
-            )
+            ),
+
+              if(imageBytes != null)...{
+                Expanded(
+                  child: Center(child: Image.memory(imageBytes!)),
+                )
+              }
           ],
         ),
       ),
