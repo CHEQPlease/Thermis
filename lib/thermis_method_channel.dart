@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -30,8 +31,8 @@ class MethodChannelThermis extends ThermisPlatform {
   }
 
   @override
-  Future<Uint8List?> previewReceipt(String receiptDTOJSON) async{
-    var result  = await methodChannel.invokeMethod<Uint8List?>('preview_receipt',{"receipt_dto_json" : receiptDTOJSON});
+  Future<Uint8List?> getReceiptPreview(String receiptDTOJSON) async{
+    var result  = await methodChannel.invokeMethod<Uint8List?>('get_receipt_preview',{"receipt_dto_json" : receiptDTOJSON});
     return result;
   }
 

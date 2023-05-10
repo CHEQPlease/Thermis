@@ -61,21 +61,25 @@ class ThermisPlugin: FlutterPlugin, MethodCallHandler {
       result.success(ThermisManager.checkPrinterConnection())
     }
 
-    else if(call.method == "preview_receipt")
+    else if(call.method == "get_receipt_preview")
     {
       val receiptDTO = call.argument<String>("receipt_dto_json")
       if (receiptDTO != null) {
         GlobalScope.launch(Dispatchers.IO) {
-          val bitmap = ThermisManager.previewReceipt(receiptDTO)
-          val stream = ByteArrayOutputStream()
-          bitmap?.compress(Bitmap.CompressFormat.PNG, 100, stream)
-          val image = stream.toByteArray()
-          result.success(image)
+          try {
+            val bitmap = ThermisManager.previewReceipt(receiptDTO)
+            val stream = ByteArrayOutputStream()
+            bitmap?.compress(Bitmap.CompressFormat.PNG, 100, stream)
+            val image = stream.toByteArray()
+            result.success(image)
+          } catch (e: Exception) {
+            result.error("Error", e.message, null)
+          }
         }
 
       }
       else{
-        result.success(null)
+        result.error("Error", "Receipt DTO is null", null);
       }
 
     }

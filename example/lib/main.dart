@@ -17,9 +17,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String demotext = "Demo Text";
-  Uint8List? imageBytes;
-
   @override
   void initState() {
     super.initState();
@@ -43,17 +40,10 @@ class _MyAppState extends State<MyApp> {
             ElevatedButton(
               onPressed: () async {
                 String receiptDTOJSON = await DefaultAssetBundle.of(context).loadString('assets/data.json');
-                imageBytes = await Thermis.previewReceipt(receiptDTOJSON);
-                setState(() {});
+                await Thermis.printCHEQReceipt(receiptDTOJSON);
               },
               child: const Text("Test Print"),
             ),
-
-              if(imageBytes != null)...{
-                Expanded(
-                  child: Center(child: Image.memory(imageBytes!)),
-                )
-              }
           ],
         ),
       ),
