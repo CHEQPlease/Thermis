@@ -72,7 +72,6 @@ class ThermisPlugin: FlutterPlugin, MethodCallHandler {
           val image = stream.toByteArray()
           result.success(image)
         }
-
       }
       else{
         result.success(null)
