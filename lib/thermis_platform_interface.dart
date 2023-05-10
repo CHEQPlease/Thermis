@@ -26,7 +26,7 @@ abstract class ThermisPlatform extends PlatformInterface {
   }
 
   Future<bool?> printCHEQReceipt(String receiptDTOJSON);
-  Future<Uint8List?> previewReceipt(String receiptDTOJSON);
+  Future<Uint8List?> getReceiptPreview(String receiptDTOJSON);
   Future<bool?> openCashDrawer();
   Future<bool?> cutPaper();
   Future<bool?> checkPrinterConnection();

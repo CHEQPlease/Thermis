@@ -9,7 +9,7 @@ class Thermis {
   }
 
   static Future<Uint8List?> previewReceipt(String receiptDTOJSON){
-    return ThermisPlatform.instance.previewReceipt(receiptDTOJSON);
+    return ThermisPlatform.instance.getReceiptPreview(receiptDTOJSON);
   }
 
   static Future<bool?> openCashDrawer(){
