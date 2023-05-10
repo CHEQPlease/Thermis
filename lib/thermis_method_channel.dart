@@ -29,4 +29,10 @@ class MethodChannelThermis extends ThermisPlatform {
     return await methodChannel.invokeMethod<bool>('check_printer_connection');
   }
 
+  @override
+  Future<Uint8List?> previewReceipt(String receiptDTOJSON) async{
+    var result  = await methodChannel.invokeMethod<Uint8List?>('preview_receipt',{"receipt_dto_json" : receiptDTOJSON});
+    return result;
+  }
+
 }
