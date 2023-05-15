@@ -154,6 +154,8 @@ object DantsuPrintManager {
             y += 256
         }
 
+        textToPrint += "[C]\n\n"
+
         if (shouldOpenCashDrawer) {
             printer.printFormattedTextAndOpenCashBox(textToPrint,20f)
         }else{

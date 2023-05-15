@@ -1,0 +1,82 @@
+{
+  "brandName":"CHEQ HQ Testing34",
+  "orderType":"",
+  "orderSubtitle":null,
+  "totalItems":"Total Items : 1",
+  "orderNo":"Order #: 1",
+  "tableNo":"Table #: -",
+  "deviceType":"pos",
+  "receiptType":"merchant",
+  "timeOfOrder":"Placed at : 05/11/2023 11:45 PM PDT",
+  "footerText":null,
+  "paymentQRLink":null,
+  "isRefunded":false,
+  "isReprinted":null,
+  "items":[
+    {
+      "itemName":"Hamburger",
+      "description":"",
+      "quantity":"1",
+      "quantityExtra":null,
+      "price":"$1.20",
+      "strikethrough":null
+    }
+  ],
+  "breakdown":[
+    {
+      "key":"Payment Type",
+      "value":"CASH",
+      "important":null
+    },
+    {
+      "key":"Card Type",
+      "value":"cash",
+      "important":null
+    },
+    {
+      "key":"Card #:",
+      "value":"",
+      "important":null
+    },
+    {
+      "key":"Card Entry",
+      "value":"",
+      "important":null
+    },
+    {
+      "key":"",
+      "value":"",
+      "important":null
+    },
+    {
+      "key":"Sub Total",
+      "value":"$1.20",
+      "important":null
+    },
+    {
+      "key":"Pretty Tax",
+      "value":"$1.87",
+      "important":null
+    },
+    {
+      "key":"SC 123",
+      "value":"$0.05",
+      "important":null
+    },
+    {
+      "key":"Tax",
+      "value":"$0.03",
+      "important":null
+    },
+    {
+      "key":"Service Fee",
+      "value":"$0.77",
+      "important":null
+    },
+    {
+      "key":"Grand Total",
+      "value":"$3.92",
+      "important":true
+    }
+  ]
+}

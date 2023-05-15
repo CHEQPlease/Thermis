@@ -17,6 +17,9 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+
+  Uint8List? imageByets;
+
   @override
   void initState() {
     super.initState();
@@ -37,13 +40,37 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Column(
           children: [
-            ElevatedButton(
-              onPressed: () async {
-                String receiptDTOJSON = await DefaultAssetBundle.of(context).loadString('assets/data.json');
-                await Thermis.printCHEQReceipt(receiptDTOJSON);
-              },
-              child: const Text("Test Print"),
+            Row(
+              children: [
+                ElevatedButton(
+                  onPressed: () async {
+                    String customerJSON = await DefaultAssetBundle.of(context).loadString('assets/customer.json');
+                    String merchantJSON = await DefaultAssetBundle.of(context).loadString('assets/merchant.json');
+                    String kitchen = await DefaultAssetBundle.of(context).loadString('assets/kitchen.json');
+                    Thermis.printCHEQReceipt(customerJSON);
+                    Thermis.printCHEQReceipt(merchantJSON);
+                    Thermis.printCHEQReceipt(kitchen);
+                  },
+                  child: const Text('Print Receipt'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    String customerJSON = await DefaultAssetBundle.of(context).loadString('assets/merchant.json');
+                    imageByets = await Thermis.previewReceipt(customerJSON);
+                    setState(()  {
+
+                    });
+
+                  },
+                  child: const Text('Preview Receipt'),
+                ),
+              ],
             ),
+            if(imageByets != null)
+              Expanded(child: Container(
+                  color: Colors.redAccent,
+                  margin: const EdgeInsets.all(0),
+                  child: Image.memory(imageByets!))),
           ],
         ),
       ),

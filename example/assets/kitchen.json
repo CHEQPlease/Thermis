@@ -5,7 +5,7 @@
   "totalItems": "2",
   "orderNo": "K10",
   "tableNo": "234",
-  "receiptType": "customer",
+  "receiptType": "kitchen",
   "deviceType" : "pos",
   "timeOfOrder": "Placed at : 01/12/2023 03:57 AM AKST",
   "isRefunded": false,
@@ -18,13 +18,6 @@
       "quantity": "1",
       "price": "$10.0",
       "strikethrough": false
-    },
-    {
-      "itemName": "Water + Apple Pay",
-      "description": "  -- Onions\n",
-      "quantity": "1",
-      "price": "$1.0",
-      "strikethrough": true
     }
   ],
   "breakdown": [
@@ -89,23 +82,6 @@
       "important": true
     }
   ],
-  "gratuityInfo": {
-    "gratuityItems": [
-      {
-        "tip": "❏ $1.0 tip = $1.00 ,",
-        "total": "TOTAL =  $93.00"
-      },
-      {
-        "tip": "❏ $3.0 tip = $3.00 ,",
-        "total": "TOTAL =  $93.00"
-      },
-      {
-        "tip": "❏ $100.0 tip = $5.00 ,",
-        "total": "TOTAL =  $95.00"
-      }
-    ],
-    "isSignatureNeeded": true
-  },
   "serverTipInfo": {
     "serverName": "Shorol",
     "serverId": "(123333330022)",
