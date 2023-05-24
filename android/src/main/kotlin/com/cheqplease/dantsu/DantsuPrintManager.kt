@@ -16,6 +16,7 @@ import com.dantsu.escposprinter.EscPosPrinterCommands
 import com.dantsu.escposprinter.connection.usb.UsbConnection
 import com.dantsu.escposprinter.connection.usb.UsbPrintersConnections
 import com.dantsu.escposprinter.textparser.PrinterTextParserImg
+import java.lang.Math.ceil
 import java.lang.ref.WeakReference
 
 
@@ -127,6 +128,19 @@ object DantsuPrintManager {
         }
     }
 
+    private fun rescale(printer: EscPosPrinter, bitmap: Bitmap): Bitmap {
+        val maxWidth: Int = printer.printerWidthPx
+        var newBitmap = bitmap
+        bitmap.apply {
+            if (width > maxWidth) {
+                val ratio = height.toDouble() / width.toDouble()
+                val newHeight = kotlin.math.ceil(maxWidth * ratio).toInt()
+                newBitmap = Bitmap.createScaledBitmap(this, maxWidth, newHeight, true)
+            }
+        }
+
+        return newBitmap
+    }
 
     fun printImage(
         usbManager: UsbManager,
@@ -146,10 +160,7 @@ object DantsuPrintManager {
                 if (y + 256 >= height) height - y else 256
             )
             textToPrint += ("[C]<img>${
-                PrinterTextParserImg.bitmapToHexadecimalString(
-                    printer,
-                    newBitmap
-                )
+                PrinterTextParserImg.bytesToHexadecimalString(EscPosPrinterCommands.bitmapToBytes(rescale(printer, newBitmap), false))
             }</img>\n")
             y += 256
         }
