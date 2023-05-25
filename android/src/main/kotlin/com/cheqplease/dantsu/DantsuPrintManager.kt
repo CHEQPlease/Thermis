@@ -142,6 +142,12 @@ object DantsuPrintManager {
         return newBitmap
     }
 
+   private fun getFormattedPrintText(printer: EscPosPrinter, newBitmap: Bitmap): String? {
+        val imageBytes = EscPosPrinterCommands.bitmapToBytes(rescale(printer, newBitmap), false)
+
+        return PrinterTextParserImg.bytesToHexadecimalString(imageBytes)
+    }
+
     fun printImage(
         usbManager: UsbManager,
         usbDevice: UsbDevice,
@@ -159,9 +165,7 @@ object DantsuPrintManager {
                 bitmap, 0, y, width,
                 if (y + 256 >= height) height - y else 256
             )
-            textToPrint += ("[C]<img>${
-                PrinterTextParserImg.bytesToHexadecimalString(EscPosPrinterCommands.bitmapToBytes(rescale(printer, newBitmap), false))
-            }</img>\n")
+            textToPrint += ("[C]<img>${ getFormattedPrintText(printer, newBitmap) }</img>\n")
             y += 256
         }
 
