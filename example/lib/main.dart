@@ -44,11 +44,11 @@ class _MyAppState extends State<MyApp> {
               children: [
                 ElevatedButton(
                   onPressed: () async {
-                    String customerJSON = await DefaultAssetBundle.of(context).loadString('assets/customer.json');
-                    String merchantJSON = await DefaultAssetBundle.of(context).loadString('assets/merchant.json');
-                    String kitchen = await DefaultAssetBundle.of(context).loadString('assets/kitchen.json');
-                    Thermis.printCHEQReceipt(customerJSON);
-                    Thermis.printCHEQReceipt(merchantJSON);
+                    // String customerJSON = await DefaultAssetBundle.of(context).loadString('assets/customer.json');
+                    // String merchantJSON = await DefaultAssetBundle.of(context).loadString('assets/merchant.json');
+                     String kitchen = await DefaultAssetBundle.of(context).loadString('assets/kitchen.json');
+                    String serverTips = await DefaultAssetBundle.of(context).loadString('assets/server_tips.json');
+                    Thermis.printCHEQReceipt(serverTips);
                     Thermis.printCHEQReceipt(kitchen);
                   },
                   child: const Text('Print Receipt'),
