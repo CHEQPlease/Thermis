@@ -55,7 +55,7 @@ class _MyAppState extends State<MyApp> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    String customerJSON = await DefaultAssetBundle.of(context).loadString('assets/merchant.json');
+                    String customerJSON = await DefaultAssetBundle.of(context).loadString('assets/kitchen.json');
                     imageByets = await Thermis.previewReceipt(customerJSON);
                     setState(()  {
 

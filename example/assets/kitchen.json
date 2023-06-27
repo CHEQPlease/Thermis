@@ -11,6 +11,7 @@
   "isRefunded": false,
   "isReprinted" : false,
   "paymentQRLink" : "https://www.google.com",
+  "offlineHeaderMsg" : "Please provide this copy to an attendant",
   "items": [
     {
       "itemName": "Salmon Fry",
