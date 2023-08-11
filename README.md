@@ -17,7 +17,7 @@ Add this line on your **pubspec.yaml**
 thermis:
     git:
       url: https://github.com/CHEQPlease/Thermis.git
-      ref: release/1.0.0
+      ref: release/1.5.0
 ```
 
 **Printing a Receipt**
