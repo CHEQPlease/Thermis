@@ -18,6 +18,7 @@ import com.dantsu.escposprinter.connection.usb.UsbPrintersConnections
 import com.dantsu.escposprinter.textparser.PrinterTextParserImg
 import java.lang.Math.ceil
 import java.lang.ref.WeakReference
+import com.common.apiutil.moneybox.MoneyBox;
 
 
 object DantsuPrintManager {
@@ -183,22 +184,24 @@ object DantsuPrintManager {
 
 
     fun requestOpenCashDrawer(){
-        val usbConnection: UsbConnection? = UsbPrintersConnections.selectFirstConnected(context.get())
-        val usbManager = context.get()?.getSystemService(Context.USB_SERVICE) as UsbManager?
 
-        val usbPermissionIntent = Intent(ACTION_USB_PERMISSION)
-        val usbPermissionIntentFilter = IntentFilter(ACTION_USB_PERMISSION);
-
-        if (usbConnection != null && usbManager != null) {
-            val permissionIntent = PendingIntent.getBroadcast(
-                context.get(),
-                0,
-                usbPermissionIntent,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
-            )
-            context.get()?.registerReceiver(getCashDrawerOpenBroadcastReceiver(), usbPermissionIntentFilter)
-            usbManager.requestPermission(usbConnection.device, permissionIntent)
-        }
+        MoneyBox.open();
+//        val usbConnection: UsbConnection? = UsbPrintersConnections.selectFirstConnected(context.get())
+//        val usbManager = context.get()?.getSystemService(Context.USB_SERVICE) as UsbManager?
+//
+//        val usbPermissionIntent = Intent(ACTION_USB_PERMISSION)
+//        val usbPermissionIntentFilter = IntentFilter(ACTION_USB_PERMISSION);
+//
+//        if (usbConnection != null && usbManager != null) {
+//            val permissionIntent = PendingIntent.getBroadcast(
+//                context.get(),
+//                0,
+//                usbPermissionIntent,
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
+//            )
+//            context.get()?.registerReceiver(getCashDrawerOpenBroadcastReceiver(), usbPermissionIntentFilter)
+//            usbManager.requestPermission(usbConnection.device, permissionIntent)
+//        }
     }
 
     fun openCashDrawer() {
