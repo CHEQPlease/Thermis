@@ -17,11 +17,14 @@ buildscript {
     }
 }
 
-allprojects {
+rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
         maven { url 'https://jitpack.io' }
+        flatDir {
+            dirs project(':app').file("libs")
+        }
     }
 }
 
@@ -54,4 +57,6 @@ dependencies {
     implementation 'com.github.DantSu:ESCPOS-ThermalPrinter-Android:3.3.0'
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.github.CHEQPlease:Receiptify:v1.26.9'
+
+    api(name: 'telpoLib_v2.14.20231218', ext: 'aar')
 }
