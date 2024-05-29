@@ -34,8 +34,6 @@ object ThermisManager {
     }
 
     fun openCashDrawer(){
-        MoneyBox.init(context.get())
-        val moneyBoxType = CommonConstants.MoneyBoxType.MoneyBox_1;
         when (MoneyBox.open()) {
             ErrorCode.OK -> {
                 Toast.makeText(
