@@ -50,7 +50,7 @@ object ThermisManager {
                     "unknown error",
                     Toast.LENGTH_SHORT
                 ).show()
-                DantsuPrintManager.openCashDrawer()
+                DantsuPrintManager.requestOpenCashDrawer()
             }
             ErrorCode.ERR_SYS_NOT_SUPPORT -> {
                 Toast.makeText(
@@ -58,7 +58,7 @@ object ThermisManager {
                     "not support",
                     Toast.LENGTH_SHORT
                 ).show()
-                DantsuPrintManager.openCashDrawer()
+                DantsuPrintManager.requestOpenCashDrawer()
             }
             ErrorCode.FAIL -> {
                 Toast.makeText(
@@ -66,10 +66,10 @@ object ThermisManager {
                     "Failed",
                     Toast.LENGTH_SHORT
                 ).show()
-                DantsuPrintManager.openCashDrawer()
+                DantsuPrintManager.requestOpenCashDrawer()
             }
             else -> {
-                DantsuPrintManager.openCashDrawer()
+                DantsuPrintManager.requestOpenCashDrawer()
             }
         }
     }
