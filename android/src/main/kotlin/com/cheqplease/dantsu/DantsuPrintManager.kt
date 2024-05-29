@@ -16,9 +16,7 @@ import com.dantsu.escposprinter.EscPosPrinterCommands
 import com.dantsu.escposprinter.connection.usb.UsbConnection
 import com.dantsu.escposprinter.connection.usb.UsbPrintersConnections
 import com.dantsu.escposprinter.textparser.PrinterTextParserImg
-import java.lang.Math.ceil
 import java.lang.ref.WeakReference
-import com.common.apiutil.moneybox.MoneyBox;
 
 
 object DantsuPrintManager {
@@ -184,8 +182,6 @@ object DantsuPrintManager {
 
 
     fun requestOpenCashDrawer(){
-
-        MoneyBox.open();
 //        val usbConnection: UsbConnection? = UsbPrintersConnections.selectFirstConnected(context.get())
 //        val usbManager = context.get()?.getSystemService(Context.USB_SERVICE) as UsbManager?
 //
