@@ -54,7 +54,7 @@ dependencies {
         exclude group: 'com.google.zxing', module: 'core'
     }
     implementation 'com.google.code.gson:gson:2.10.1'
-    implementation ('com.github.CHEQPlease:Receiptify:1.27.3') {
+    implementation ('com.github.CHEQPlease:Receiptify:1.28.0') {
         exclude group: 'com.google.zxing', module: 'core'
     }
 }
