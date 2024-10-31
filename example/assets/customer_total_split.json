@@ -1,0 +1,169 @@
+{
+  "brandName": "CHEQ Test",
+  "customerName": null,
+  "serverName": null,
+  "deviceName": "pos_162_150_CHEQ Test",
+  "orderType": "Counter",
+  "orderSubtitle": null,
+  "totalItems": "Total Items : 2",
+  "orderNo": "Order #: 1",
+  "tableNo": null,
+  "deviceType": "pos",
+  "receiptType": "CUSTOMER_TOTAL_SPLIT",
+  "timeOfOrder": "Placed at : 10/31/2024 12:35 AM PDT",
+  "footerText": null,
+  "paymentQRLink": null,
+  "footerQR": null,
+  "isRefunded": false,
+  "isReprinted": false,
+  "printStatusText": null,
+  "supportInfo": "",
+  "splitCount": "Split count : 4",
+  "offlineHeaderMsg": "",
+  "items": [
+    {
+      "itemName": "Chicken Tikka 8",
+      "description": "  -- Regular",
+      "quantity": "1",
+      "quantityExtra": null,
+      "price": "$10.00",
+      "strikethrough": null
+    },
+    {
+      "itemName": "Chicken Tikka7",
+      "description": "  -- Regular",
+      "quantity": "1",
+      "quantityExtra": null,
+      "price": "$10.00",
+      "strikethrough": null
+    }
+  ],
+  "breakdown": [
+    {
+      "key": "SUB TOTAL",
+      "value": "$20.00",
+      "important": null
+    },
+    {
+      "key": "SERVICE CHARGE1",
+      "value": "$0.40",
+      "important": null
+    },
+    {
+      "key": "SALES TAX",
+      "value": "$3.00",
+      "important": null
+    },
+    {
+      "key": "TAX",
+      "value": "$1.02",
+      "important": null
+    },
+    {
+      "key": "CONVENIENCE FEE",
+      "value": "$4.03",
+      "important": null
+    },
+    {
+      "key": "TIP",
+      "value": "$3.00",
+      "important": null
+    },
+    {
+      "key": "GRAND TOTAL",
+      "value": "$31.45",
+      "important": true,
+      "gap" : true
+    }
+  ],
+  "splits": [
+    [
+      {
+        "key": "SPLIT-1",
+        "value": ""
+      },
+      {
+        "key": "Payment Type",
+        "value": "CARD"
+      },
+      {
+        "key": "Card Type",
+        "value": "mc"
+      },
+      {
+        "key": "Card #",
+        "value": "****9999"
+      },
+      {
+        "key": "Card Entry",
+        "value": "CONTACTLESS"
+      }
+    ],
+    [
+      {
+        "key": "SPLIT-2",
+        "value": ""
+      },
+      {
+        "key": "Payment Type",
+        "value": "CASH"
+      },
+      {
+        "key": "Card Type",
+        "value": "-----"
+      },
+      {
+        "key": "Card #",
+        "value": "-----"
+      },
+      {
+        "key": "Card Entry",
+        "value": "-----"
+      }
+    ],
+    [
+      {
+        "key": "SPLIT-3",
+        "value": ""
+      },
+      {
+        "key": "Payment Type",
+        "value": "CARD"
+      },
+      {
+        "key": "Card Type",
+        "value": "mc"
+      },
+      {
+        "key": "Card #",
+        "value": "****9999"
+      },
+      {
+        "key": "Card Entry",
+        "value": "CONTACTLESS"
+      }
+    ],
+    [
+      {
+        "key": "SPLIT-4",
+        "value": ""
+      },
+      {
+        "key": "Payment Type",
+        "value": "CASH"
+      },
+      {
+        "key": "Card Type",
+        "value": "-----"
+      },
+      {
+        "key": "Card #",
+        "value": "-----"
+      },
+      {
+        "key": "Card Entry",
+        "value": "-----"
+      }
+    ]
+  ]
+}
