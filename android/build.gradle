@@ -12,7 +12,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.2.0'
+        classpath 'com.android.tools.build:gradle:7.2.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -29,7 +29,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 31
+    compileSdk 33
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -50,11 +50,11 @@ android {
 }
 
 dependencies {
-    implementation ('com.github.DantSu:ESCPOS-ThermalPrinter-Android:3.3.0') {
+    implementation ('com.github.DantSu:ESCPOS-ThermalPrinter-Android:3.4.0') {
         exclude group: 'com.google.zxing', module: 'core'
     }
     implementation 'com.google.code.gson:gson:2.10.1'
-    implementation ('com.github.CHEQPlease:Receiptify:1.32.1') {
+    implementation ('com.github.CHEQPlease:Receiptify:1.34.0') {
         exclude group: 'com.google.zxing', module: 'core'
     }
 }
