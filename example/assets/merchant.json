@@ -12,6 +12,8 @@
   "paymentQRLink":null,
   "isRefunded":false,
   "isReprinted":null,
+  "companyName": "CANTALOUPE",
+  "excludeCompanyNameWatermark": true,
   "items":[
     {
       "itemName":"Hamburger",

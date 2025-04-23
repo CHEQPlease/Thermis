@@ -20,6 +20,8 @@
   "supportInfo": "",
   "splitCount": "Split count : 4",
   "offlineHeaderMsg": "",
+  "companyName": "CHEQ",
+  "excludeCompanyNameWatermark": true,
   "items": [
     {
       "itemName": "Chicken Tikka 8",

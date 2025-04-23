@@ -11,6 +11,8 @@
   "isRefunded": false,
   "isReprinted" : false,
   "paymentQRLink" : "https://www.google.com",
+  "companyName": "CANTALOUPE",
+  "excludeCompanyNameWatermark": true,
   "items": [
     {
       "itemName": "Salmon Fry",
