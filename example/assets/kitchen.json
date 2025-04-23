@@ -12,6 +12,8 @@
   "isReprinted" : false,
   "paymentQRLink" : "https://www.google.com",
   "offlineHeaderMsg" : "Please provide this copy to an attendant",
+  "companyName": "CANTALOUPE",
+  "excludeCompanyNameWatermark": true,
   "items": [
     {
       "itemName": "Salmon Fry",
