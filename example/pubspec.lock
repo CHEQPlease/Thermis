@@ -206,7 +206,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.14.0+1014000"
+    version: "1.14.1+1014100"
   vector_math:
     dependency: transitive
     description:
