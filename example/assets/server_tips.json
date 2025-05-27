@@ -9,6 +9,8 @@
     "totalNetSales": " $214.67",
     "cash": " $0.00",
     "otherPayment": " $214.67",
+    "companyName": "CANTALOUPE",
+    "excludeCompanyNameWatermark": true,
     "tipInfoBreakdown": [
       {
         "key": "Sign in time",
