@@ -7,7 +7,7 @@
   "tableNo": "234",
   "receiptType": "kitchen",
   "deviceType" : "pos",
-  "timeOfOrder": "Placed at : 01/12/2023 03:57 AM AKST",
+  "placedAt": "01/12/2023 03:57 AM AKST",
   "isRefunded": false,
   "isReprinted" : false,
   "paymentQRLink" : "https://www.google.com",

@@ -7,7 +7,7 @@
   "tableNo":"Table #: -",
   "deviceType":"pos",
   "receiptType":"merchant",
-  "timeOfOrder":"Placed at : 05/11/2023 11:45 PM PDT",
+  "placedAt":"05/11/2023 11:45 PM PDT",
   "footerText":null,
   "paymentQRLink":null,
   "isRefunded":false,

@@ -10,7 +10,7 @@
   "tableNo": null,
   "deviceType": "pos",
   "receiptType": "CUSTOMER_TOTAL_SPLIT",
-  "timeOfOrder": "Placed at : 10/31/2024 12:35 AM PDT",
+  "placedAt": "10/31/2024 12:35 AM PDT",
   "footerText": null,
   "paymentQRLink": null,
   "footerQR": null,
