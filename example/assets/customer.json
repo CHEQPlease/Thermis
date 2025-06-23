@@ -3,14 +3,14 @@
   "orderType": "Counter",
   "totalItems": "Total items: 2",
   "orderNo": "Order# :K10",
-  "receiptType": "KIOSK",
+  "receiptType": "customer",
   "deviceType": "pos",
-  "timeOfOrder": "May 23, 07:23PM",
   "footerQR": "123456wvweq2512123tqdsasdgasdgasdg",
   "isReprinted": true,
   "splitCount": "SPLIT COUNT: 4",
   "companyName": "CANTALOUPE",
   "excludeCompanyNameWatermark": true,
+  "placedAt": "01/12/2023 03:57 AM",
   "items": [
     {
       "itemName": "Salmon Fry",
