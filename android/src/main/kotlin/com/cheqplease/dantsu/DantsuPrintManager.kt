@@ -73,11 +73,9 @@ object DantsuPrintManager {
                         val usbDevice = intent.getParcelableExtra<Parcelable>(UsbManager.EXTRA_DEVICE) as UsbDevice?
                         if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                             if (usbServiceManager != null && usbDevice != null) {
-                                PrintingQueue.addPrintingTask(
-                                    Runnable {
-                                       cutPaper()
-                                    }
-                                )
+                                PrintingQueue.addPrintingTask {
+                                    cutPaper()
+                                }
                                 context?.unregisterReceiver(this)
                             }
                         }
@@ -103,11 +101,9 @@ object DantsuPrintManager {
                         }
                         if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                             if (usbServiceManager != null && usbDevice != null) {
-                                PrintingQueue.addPrintingTask(
-                                    Runnable {
-                                        openCashDrawer()
-                                    }
-                                )
+                                PrintingQueue.addPrintingTask {
+                                    openCashDrawer()
+                                }
                                 context?.unregisterReceiver(this)
                             }
                         }
