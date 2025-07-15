@@ -1,6 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:thermis/printer_config.dart';
 
 import 'thermis_platform_interface.dart';
 
@@ -9,6 +9,11 @@ class MethodChannelThermis extends ThermisPlatform {
   /// The method channel used to interact with the native platform.
   @visibleForTesting
   final methodChannel = const MethodChannel('thermis');
+
+  @override
+  Future<bool?> init(PrinterConfig printerConfig) async{
+    return await methodChannel.invokeMethod<bool>('init', printerConfig.toMap());
+  }
 
   @override
   Future<bool?> printCHEQReceipt(String receiptDTOJSON) async {

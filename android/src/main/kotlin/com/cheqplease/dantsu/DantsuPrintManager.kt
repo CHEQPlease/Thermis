@@ -10,26 +10,27 @@ import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.os.Build
 import android.os.Parcelable
+import com.cheqplease.thermis.PrinterConfig
+import com.cheqplease.thermis.PrinterManager
 import com.cheqplease.thermis.utils.PrintingQueue
 import com.dantsu.escposprinter.EscPosPrinter
 import com.dantsu.escposprinter.EscPosPrinterCommands
 import com.dantsu.escposprinter.connection.usb.UsbConnection
 import com.dantsu.escposprinter.connection.usb.UsbPrintersConnections
 import com.dantsu.escposprinter.textparser.PrinterTextParserImg
-import java.lang.Math.ceil
 import java.lang.ref.WeakReference
 
 
-object DantsuPrintManager {
+object DantsuPrintManager : PrinterManager {
 
     private lateinit var context: WeakReference<Context>
 
-    fun init(context: Context) {
-        DantsuPrintManager.context = WeakReference<Context>(context)
-    }
 
     private const val ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION"
 
+    override fun init(config: PrinterConfig) {
+        context = WeakReference<Context>(config.context)
+    }
 
     private fun getPrintBroadcastReceiver(bitmap: Bitmap, shouldOpenCashDrawer: Boolean): BroadcastReceiver {
         return object : BroadcastReceiver() {
@@ -47,11 +48,14 @@ object DantsuPrintManager {
                         }
                         if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                             if (usbServiceManager != null && usbDevice != null) {
-                                PrintingQueue.addPrintingTask(
-                                    Runnable {
-                                        printImage(usbServiceManager, usbDevice, bitmap, shouldOpenCashDrawer)
-                                    }
-                                )
+                                PrintingQueue.addPrintingTask {
+                                    printImage(
+                                        usbServiceManager,
+                                        usbDevice,
+                                        bitmap,
+                                        shouldOpenCashDrawer
+                                    )
+                                }
                                 context?.unregisterReceiver(this)
                             }
                         }
@@ -73,6 +77,11 @@ object DantsuPrintManager {
                         val usbDevice = intent.getParcelableExtra<Parcelable>(UsbManager.EXTRA_DEVICE) as UsbDevice?
                         if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                             if (usbServiceManager != null && usbDevice != null) {
+                                PrintingQueue.addPrintingTask(
+                                    Runnable {
+                                        cutPaper()
+                                    }
+                                )
                                 PrintingQueue.addPrintingTask {
                                     cutPaper()
                                 }
@@ -104,6 +113,9 @@ object DantsuPrintManager {
                                 PrintingQueue.addPrintingTask {
                                     openCashDrawer()
                                 }
+                                PrintingQueue.addPrintingTask {
+                                    openCashDrawer()
+                                }
                                 context?.unregisterReceiver(this)
                             }
                         }
@@ -114,7 +126,7 @@ object DantsuPrintManager {
     }
 
 
-    fun requestPrintBitmap(bitmap: Bitmap, shouldOpenCashDrawer: Boolean) {
+    override fun printBitmap(bitmap: Bitmap, shouldOpenCashDrawer: Boolean) {
         val usbConnection: UsbConnection? = UsbPrintersConnections.selectFirstConnected(context.get())
         val usbManager = context.get()?.getSystemService(Context.USB_SERVICE) as UsbManager?
 
@@ -130,7 +142,7 @@ object DantsuPrintManager {
                 usbPermissionIntent,
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
             )
-            
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 context.get()?.registerReceiver(
                     getPrintBroadcastReceiver(bitmap, shouldOpenCashDrawer),
@@ -161,7 +173,7 @@ object DantsuPrintManager {
         return newBitmap
     }
 
-   private fun getFormattedPrintText(printer: EscPosPrinter, newBitmap: Bitmap): String? {
+    private fun getFormattedPrintText(printer: EscPosPrinter, newBitmap: Bitmap): String? {
         val imageBytes = EscPosPrinterCommands.bitmapToBytes(rescale(printer, newBitmap), false)
 
         return PrinterTextParserImg.bytesToHexadecimalString(imageBytes)
@@ -220,7 +232,7 @@ object DantsuPrintManager {
         }
     }
 
-    fun openCashDrawer() {
+    override fun openCashDrawer() {
         val usbConnection: UsbConnection? = UsbPrintersConnections.selectFirstConnected(context.get())
         val printerRaw = EscPosPrinterCommands(usbConnection)
         printerRaw.connect()
@@ -248,7 +260,7 @@ object DantsuPrintManager {
         }
     }
 
-    fun cutPaper() {
+    override fun cutPaper() {
         val usbConnection: UsbConnection? = UsbPrintersConnections.selectFirstConnected(context.get())
         val printerRaw = EscPosPrinterCommands(usbConnection)
         printerRaw.connect()
@@ -256,8 +268,7 @@ object DantsuPrintManager {
         printerRaw.disconnect()
     }
 
-
-    fun checkConnection() : Boolean {
+    override suspend fun checkConnection() : Boolean {
         return UsbPrintersConnections.selectFirstConnected(context.get()) != null
     }
 

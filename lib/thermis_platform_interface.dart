@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:thermis/printer_config.dart';
 
 import 'thermis_method_channel.dart';
 
@@ -25,6 +26,7 @@ abstract class ThermisPlatform extends PlatformInterface {
     _instance = instance;
   }
 
+  Future<bool?> init(PrinterConfig printerConfig);
   Future<bool?> printCHEQReceipt(String receiptDTOJSON);
   Future<Uint8List?> getReceiptPreview(String receiptDTOJSON);
   Future<bool?> openCashDrawer();

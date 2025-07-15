@@ -4,6 +4,8 @@ import android.content.Context
 import java.lang.ref.WeakReference
 import com.starmicronics.stario10.*
 import android.graphics.Bitmap
+import com.cheqplease.thermis.PrinterConfig
+import com.cheqplease.thermis.PrinterManager
 import com.starmicronics.stario10.starxpandcommand.PrinterBuilder
 import com.starmicronics.stario10.starxpandcommand.DocumentBuilder
 import kotlinx.coroutines.CoroutineScope
@@ -11,18 +13,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import com.starmicronics.stario10.starxpandcommand.*
+import com.starmicronics.stario10.starxpandcommand.drawer.Channel
+import com.starmicronics.stario10.starxpandcommand.drawer.OpenParameter
 import com.starmicronics.stario10.starxpandcommand.printer.*
 
-object StarPrinterManager {
+object StarPrinterManager : PrinterManager {
     private lateinit var context: WeakReference<Context>
     private var printerMac: String = ""
 
     private lateinit var printer: StarPrinter
 
-    fun init(context: Context, mac: String) {
-        this.context = WeakReference(context)
-        this.printerMac = mac
-
+    override fun init(config: PrinterConfig) {
+        this.context = WeakReference(config.context)
+        this.printerMac = config.macAddress ?: ""
         initPrinter()
     }
 
@@ -34,7 +37,7 @@ object StarPrinterManager {
         printer = StarPrinter(settings, context.get() ?: throw IllegalStateException("Context cannot be null"))
     }
 
-    fun printBitmap(bitmap: Bitmap) {
+    override fun printBitmap(bitmap: Bitmap, shouldOpenCashDrawer: Boolean) {
         val job = SupervisorJob()
         val scope = CoroutineScope(Dispatchers.IO + job)
 
@@ -63,7 +66,7 @@ object StarPrinterManager {
         }
     }
 
-    suspend fun checkConnection(): Boolean {
+    override suspend fun checkConnection(): Boolean {
         return try {
             printer.openAsync().await()
             true
@@ -71,6 +74,66 @@ object StarPrinterManager {
             false
         } finally {
             printer.closeAsync().await()
+        }
+    }
+
+    override fun openCashDrawer() {
+        val job = SupervisorJob()
+        val scope = CoroutineScope(Dispatchers.Default + job)
+
+        scope.launch {
+            try {
+                val builder = StarXpandCommandBuilder()
+                builder.addDocument(
+                    DocumentBuilder()
+                        .addDrawer(
+                            DrawerBuilder()
+                                .actionOpen(
+                                    OpenParameter()
+                                    .setChannel(Channel.No1)
+                                )
+                        )
+                )
+
+                val commands = builder.getCommands()
+
+                printer.openAsync().await()
+                printer.printAsync(commands).await()
+            } catch (e: StarIO10NotFoundException) {
+                // Handle printer not found error
+                e.printStackTrace()
+            } catch (e: Exception) {
+                // Handle other exceptions
+                e.printStackTrace()
+            } finally {
+                printer.closeAsync().await()
+            }
+        }
+    }
+
+    override fun cutPaper() {
+        val job = SupervisorJob()
+        val scope = CoroutineScope(Dispatchers.Default + job)
+
+        scope.launch {
+            try {
+                val builder = StarXpandCommandBuilder()
+                builder.addDocument(
+                    DocumentBuilder()
+                        .addPrinter(
+                            PrinterBuilder()
+                                .actionCut(CutType.Partial)
+                        )
+                )
+                val commands = builder.getCommands()
+
+                printer.openAsync().await()
+                printer.printAsync(commands).await()
+            } catch (e: StarIO10Exception) {
+                e.printStackTrace()
+            } finally {
+                printer.closeAsync().await()
+            }
         }
     }
 }
