@@ -11,7 +11,7 @@ class Thermis {
     return ThermisPlatform.instance.init(config);
   }
 
-  static Future<void> printCHEQReceipt(String receiptDTOJSON) {
+  static Future<void> printReceipt(String receiptDTOJSON) {
     return ThermisPlatform.instance.printCHEQReceipt(receiptDTOJSON);
   }
 
@@ -27,7 +27,7 @@ class Thermis {
     return ThermisPlatform.instance.checkPrinterConnection();
   }
 
-  static Future<Uint8List?> previewReceipt(String receiptDTOJSON) {
+  static Future<Uint8List?> getReceiptReview(String receiptDTOJSON) {
     return ThermisPlatform.instance.previewReceipt(receiptDTOJSON);
   }
 

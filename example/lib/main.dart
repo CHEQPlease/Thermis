@@ -509,7 +509,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () async {
                   Thermis.init(PrinterConfig(printerType: PrinterType.generic));
                   final receiptDTOJSON = await rootBundle.loadString('assets/customer.json');
-                  final imageBytes = await Thermis.previewReceipt(receiptDTOJSON);
+                  final imageBytes = await Thermis.getReceiptReview(receiptDTOJSON);
                   if (imageBytes != null && context.mounted) {
                     await _showPreviewDialog(context, imageBytes);
                   }
@@ -555,7 +555,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         printerType: PrinterType.generic,
                       ));
                       final receiptDTOJSON = await rootBundle.loadString('assets/customer.json');
-                      await Thermis.printCHEQReceipt(receiptDTOJSON);
+                      await Thermis.printReceipt(receiptDTOJSON);
                     },
                     icon: const Icon(Icons.print),
                     label: const Text('Test Print'),
@@ -610,7 +610,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         printerMAC: selectedPrinter == '-' ? null : selectedPrinter,
                       ));
                       final receiptDTOJSON = await rootBundle.loadString('assets/customer.json');
-                      Thermis.printCHEQReceipt(receiptDTOJSON);
+                      Thermis.printReceipt(receiptDTOJSON);
                     },
                     icon: const Icon(Icons.print),
                     label: const Text('Test Print'),
