@@ -1,10 +1,10 @@
 class PrinterConfig {
-  final String printerType;
-  final String printerMAC;
+  final PrinterType printerType;
+  final String? printerMAC;
 
   PrinterConfig({
     required this.printerType,
-    required this.printerMAC,
+    this.printerMAC,
   });
 
   @override
@@ -12,10 +12,15 @@ class PrinterConfig {
     return 'PrinterConfig(printerType: $printerType, printerMAC: $printerMAC)';
   }
 
-  Map<String, String> toMap() {
+  Map<String, String?> toMap() {
     return {
-      'printer_type': printerType,
+      'printer_type': printerType.name,
       'printer_mac': printerMAC,
     };
   }
+}
+
+enum PrinterType {
+  generic,
+  starmc,
 }

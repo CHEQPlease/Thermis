@@ -16,7 +16,7 @@ object ThermisManager {
         this.context = WeakReference(config.context)
         printerManager = when (config.printerType) {
             PrinterType.GENERIC -> DantsuPrintManager
-            PrinterType.STAR -> StarPrinterManager
+            PrinterType.STARMC -> StarPrinterManager
         }
         printerManager.init(config)
         Receiptify.init(config.context)

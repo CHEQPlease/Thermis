@@ -16,12 +16,15 @@ import com.starmicronics.stario10.starxpandcommand.*
 import com.starmicronics.stario10.starxpandcommand.drawer.Channel
 import com.starmicronics.stario10.starxpandcommand.drawer.OpenParameter
 import com.starmicronics.stario10.starxpandcommand.printer.*
+import io.flutter.plugin.common.EventChannel
+import com.cheqplease.thermis.utils.MacUtils
 
 object StarPrinterManager : PrinterManager {
     private lateinit var context: WeakReference<Context>
     private var printerMac: String = ""
-
     private lateinit var printer: StarPrinter
+    private var discoveryManager: StarDeviceDiscoveryManager? = null
+    private var eventSink: EventChannel.EventSink? = null
 
     override fun init(config: PrinterConfig) {
         this.context = WeakReference(config.context)
@@ -33,8 +36,58 @@ object StarPrinterManager : PrinterManager {
         val settings = StarConnectionSettings(
             interfaceType = InterfaceType.Lan,
             identifier = printerMac,
+            autoSwitchInterface = false
         )
         printer = StarPrinter(settings, context.get() ?: throw IllegalStateException("Context cannot be null"))
+    }
+
+    fun setEventSink(sink: EventChannel.EventSink?) {
+        eventSink = sink
+        if (sink != null) {
+            startDiscovery()
+        } else {
+            stopDiscovery()
+        }
+    }
+
+    private fun startDiscovery() {
+        try {
+            stopDiscovery()
+            discoveryManager = StarDeviceDiscoveryManagerFactory.create(
+                listOf(InterfaceType.Lan),
+                context.get() ?: throw IllegalStateException("Context cannot be null")
+            )
+
+
+            discoveryManager?.discoveryTime = 10000
+            discoveryManager?.callback = object : StarDeviceDiscoveryManager.Callback {
+                override fun onPrinterFound(printer: StarPrinter) {
+                    val deviceMap = mapOf(
+                        "deviceName" to printer.information?.model?.name,
+                        "ip" to printer.information?.detail?.lan?.ipAddress,
+                        "mac" to MacUtils.formatMacAddress(printer.information?.detail?.lan?.macAddress)
+                    )
+                    eventSink?.success(deviceMap)
+                }
+
+                override fun onDiscoveryFinished() {
+                    eventSink?.endOfStream()
+                }
+            }
+            discoveryManager?.startDiscovery()
+
+        } catch (e: Exception) {
+            eventSink?.error("DISCOVERY_ERROR", e.message, null)
+        }
+    }
+
+    fun stopDiscovery() {
+        try {
+            discoveryManager?.stopDiscovery()
+            discoveryManager = null
+        } catch (e: Exception) {
+            // Handle any errors that occur during stop discovery
+        }
     }
 
     override fun printBitmap(bitmap: Bitmap, shouldOpenCashDrawer: Boolean) {

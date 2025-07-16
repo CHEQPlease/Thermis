@@ -2,8 +2,10 @@ package com.cheqplease.thermis
 
 import android.content.Context
 import android.graphics.Bitmap
+import androidx.annotation.NonNull
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.BinaryMessenger
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -12,28 +14,35 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
-import com.cheqplease.thermis.PrinterType
+import com.cheqplease.starmc.StarPrinterManager
 
 /** ThermisPlugin */
 class ThermisPlugin : FlutterPlugin, MethodCallHandler {
 
     private lateinit var channel: MethodChannel
+    private lateinit var eventChannel: EventChannel
     private lateinit var applicationContext: Context
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
-    override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        onAttachedToEngine(flutterPluginBinding.applicationContext, flutterPluginBinding.binaryMessenger)
-    }
-
-    private fun onAttachedToEngine(applicationContext: Context, messenger: BinaryMessenger) {
-        this.applicationContext = applicationContext
-        channel = MethodChannel(messenger, "thermis")
+    override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        applicationContext = flutterPluginBinding.applicationContext
+        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "thermis")
         channel.setMethodCallHandler(this)
+
+        eventChannel = EventChannel(flutterPluginBinding.binaryMessenger, "thermis/starmc_discovery")
+        eventChannel.setStreamHandler(object : EventChannel.StreamHandler {
+            override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                StarPrinterManager.setEventSink(events)
+            }
+
+            override fun onCancel(arguments: Any?) {
+                StarPrinterManager.setEventSink(null)
+            }
+        })
     }
 
-    override fun onMethodCall(call: MethodCall, result: Result) {
+    override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         when (call.method) {
-
             "init" -> {
                 val printerTypeString = call.argument<String>("printer_type") ?: "GENERIC"
                 val printerType = PrinterType.valueOf(printerTypeString.uppercase())
@@ -46,7 +55,6 @@ class ThermisPlugin : FlutterPlugin, MethodCallHandler {
                 ThermisManager.init(config)
                 result.success(true)
             }
-
             "print_cheq_receipt" -> {
                 val receiptDTO = call.argument<String>("receipt_dto_json")
                 val openCashDrawer = call.argument<Boolean>("open_cash_drawer") ?: false
@@ -89,13 +97,19 @@ class ThermisPlugin : FlutterPlugin, MethodCallHandler {
                     result.error("Error", "Receipt DTO is null", null)
                 }
             }
+            "stop_discovery" -> {
+                StarPrinterManager.stopDiscovery()
+                result.success(null)
+            }
             else -> {
                 result.notImplemented()
             }
         }
     }
 
-    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+    override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
+        eventChannel.setStreamHandler(null)
+        StarPrinterManager.stopDiscovery()
     }
 }
