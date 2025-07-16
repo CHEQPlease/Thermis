@@ -509,7 +509,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () async {
                   Thermis.init(PrinterConfig(printerType: PrinterType.generic));
                   final receiptDTOJSON = await rootBundle.loadString('assets/customer.json');
-                  final imageBytes = await Thermis.getReceiptReview(receiptDTOJSON);
+                  final imageBytes = await Thermis.getReceiptPreview(receiptDTOJSON);
                   if (imageBytes != null && context.mounted) {
                     await _showPreviewDialog(context, imageBytes);
                   }
