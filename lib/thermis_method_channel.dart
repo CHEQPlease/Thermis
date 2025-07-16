@@ -1,6 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:thermis/device.dart';
+import 'package:thermis/printer_config.dart';
 
 import 'thermis_platform_interface.dart';
 
@@ -9,10 +10,19 @@ class MethodChannelThermis extends ThermisPlatform {
   /// The method channel used to interact with the native platform.
   @visibleForTesting
   final methodChannel = const MethodChannel('thermis');
+  final eventChannel = const EventChannel('thermis/starmc_discovery');
 
   @override
-  Future<bool?> printCHEQReceipt(String receiptDTOJSON) async {
-   return await methodChannel.invokeMethod<bool>('print_cheq_receipt',{"receipt_dto_json" : receiptDTOJSON});
+  Future<bool?> init(PrinterConfig config) async {
+    final result = await methodChannel.invokeMethod<bool>('init', config.toMap());
+    return result;
+  }
+
+  @override
+  Future<void> printCHEQReceipt(String receiptDTOJSON) async {
+    await methodChannel.invokeMethod<void>('print_cheq_receipt', {
+      'receipt_dto_json': receiptDTOJSON,
+    });
   }
 
   @override
@@ -31,9 +41,23 @@ class MethodChannelThermis extends ThermisPlatform {
   }
 
   @override
-  Future<Uint8List?> getReceiptPreview(String receiptDTOJSON) async{
-    var result  = await methodChannel.invokeMethod<Uint8List?>('get_receipt_preview',{"receipt_dto_json" : receiptDTOJSON});
+  Future<Uint8List?> previewReceipt(String receiptDTOJSON) async {
+    final result = await methodChannel.invokeMethod<Uint8List>('get_receipt_preview', {
+      'receipt_dto_json': receiptDTOJSON,
+    });
     return result;
   }
 
+  @override
+  Stream<Device> discoverPrinters() {
+    return eventChannel.receiveBroadcastStream().map((dynamic event) {
+      final Map<String, dynamic> deviceMap = Map<String, dynamic>.from(event);
+      return Device.fromMap(deviceMap);
+    });
+  }
+
+  @override
+  Future<void> stopDiscovery() async {
+    await methodChannel.invokeMethod<void>('stop_discovery');
+  }
 }
