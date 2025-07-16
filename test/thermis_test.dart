@@ -30,7 +30,7 @@ class MockThermisPlatform
   }
 
   @override
-  Future<String?> printCHEQReceipt(String receiptDTOJSON) {
+  Future<String?> printReceipt(String receiptDTOJSON) {
     // TODO: implement printCHEQReceipt
     throw UnimplementedError();
   }

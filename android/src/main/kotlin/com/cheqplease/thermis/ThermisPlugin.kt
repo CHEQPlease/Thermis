@@ -55,7 +55,7 @@ class ThermisPlugin : FlutterPlugin, MethodCallHandler {
                 ThermisManager.init(config)
                 result.success(true)
             }
-            "print_cheq_receipt" -> {
+            "print_receipt" -> {
                 val receiptDTO = call.argument<String>("receipt_dto_json")
                 val openCashDrawer = call.argument<Boolean>("open_cash_drawer") ?: false
                 if (receiptDTO != null) {

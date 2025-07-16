@@ -32,7 +32,7 @@ abstract class ThermisPlatform extends PlatformInterface {
     throw UnimplementedError('init() has not been implemented.');
   }
 
-  Future<void> printCHEQReceipt(String receiptDTOJSON) {
+  Future<void> printReceipt(String receiptDTOJSON) {
     throw UnimplementedError('printCHEQReceipt() has not been implemented.');
   }
 
