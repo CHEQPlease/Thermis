@@ -28,7 +28,7 @@ class Thermis {
   }
 
   static Future<Uint8List?> getReceiptPreview(String receiptDTOJSON) {
-    return ThermisPlatform.instance.previewReceipt(receiptDTOJSON);
+    return ThermisPlatform.instance.getReceiptPreview(receiptDTOJSON);
   }
 
   static Stream<Device> discoverPrinters() {

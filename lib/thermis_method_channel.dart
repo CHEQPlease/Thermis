@@ -41,7 +41,7 @@ class MethodChannelThermis extends ThermisPlatform {
   }
 
   @override
-  Future<Uint8List?> previewReceipt(String receiptDTOJSON) async {
+  Future<Uint8List?> getReceiptPreview(String receiptDTOJSON) async {
     final result = await methodChannel.invokeMethod<Uint8List>('get_receipt_preview', {
       'receipt_dto_json': receiptDTOJSON,
     });

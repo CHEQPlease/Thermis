@@ -48,7 +48,7 @@ abstract class ThermisPlatform extends PlatformInterface {
     throw UnimplementedError('checkPrinterConnection() has not been implemented.');
   }
 
-  Future<Uint8List?> previewReceipt(String receiptDTOJSON) {
+  Future<Uint8List?> getReceiptPreview(String receiptDTOJSON) {
     throw UnimplementedError('previewReceipt() has not been implemented.');
   }
 
