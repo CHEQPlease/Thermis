@@ -4,40 +4,51 @@ import android.content.Context
 import android.graphics.Bitmap
 import com.cheq.receiptify.Receiptify
 import com.cheqplease.dantsu.DantsuPrintManager
+import com.cheqplease.starmc.StarPrinterManager
 import java.lang.ref.WeakReference
 
 object ThermisManager {
 
     private lateinit var context: WeakReference<Context>
+    private lateinit var printerManager: PrinterManager
 
-    fun init(context: Context) {
-        this.context = WeakReference<Context>(context)
-        DantsuPrintManager.init(context)
-        Receiptify.init(context)
-
+    fun init(config: PrinterConfig) {
+        this.context = WeakReference(config.context)
+        printerManager = when (config.printerType) {
+            PrinterType.GENERIC -> DantsuPrintManager
+            PrinterType.STARMC -> StarPrinterManager
+        }
+        printerManager.init(config)
+        Receiptify.init(config.context)
     }
-    fun printCheqReceipt(receiptDTO: String,shouldOpenCashDrawer: Boolean = false) {
+
+    fun printCheqReceipt(receiptDTO: String, shouldOpenCashDrawer: Boolean = false) {
         val bitmap = Receiptify.buildReceipt(receiptDTO)
         if (bitmap != null) {
-            DantsuPrintManager.requestPrintBitmap(bitmap,shouldOpenCashDrawer)
+           try {
+               printerManager.printBitmap(bitmap)
+               if (shouldOpenCashDrawer) {
+                   printerManager.openCashDrawer()
+               }
+           } catch (e: Exception) {
+               e.printStackTrace()
+           }
         }
     }
 
-    fun previewReceipt(receiptDTO: String) : Bitmap? {
+    fun previewReceipt(receiptDTO: String): Bitmap? {
         return Receiptify.buildReceipt(receiptDTO)
     }
 
-    fun openCashDrawer(){
-        DantsuPrintManager.requestOpenCashDrawer()
+    fun openCashDrawer() {
+        printerManager.openCashDrawer()
     }
 
-    fun cutPaper(){
-        DantsuPrintManager.requestCutPaper()
+    fun cutPaper() {
+        printerManager.cutPaper()
     }
 
-    fun checkPrinterConnection() : Boolean{
-        return DantsuPrintManager.checkConnection()
+    suspend fun checkPrinterConnection(): Boolean {
+        return printerManager.checkConnection()
     }
-
-
 }
