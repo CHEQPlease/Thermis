@@ -609,7 +609,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         printerType: PrinterType.starmc,
                         printerMAC: selectedPrinter == '-' ? null : selectedPrinter,
                       ));
-                      final receiptDTOJSON = await rootBundle.loadString('assets/customer.json');
+                      final receiptDTOJSON = await rootBundle.loadString('assets/kitchen.json');
+                      Thermis.printReceipt(receiptDTOJSON);
+                      Thermis.printReceipt(receiptDTOJSON);
                       Thermis.printReceipt(receiptDTOJSON);
                     },
                     icon: const Icon(Icons.print),

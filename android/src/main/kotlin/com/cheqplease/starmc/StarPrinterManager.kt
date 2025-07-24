@@ -90,31 +90,49 @@ object StarPrinterManager : PrinterManager {
         }
     }
 
-    override fun printBitmap(bitmap: Bitmap, shouldOpenCashDrawer: Boolean) {
-        val job = SupervisorJob()
-        val scope = CoroutineScope(Dispatchers.IO + job)
+    override suspend fun printBitmap(bitmap: Bitmap, shouldOpenCashDrawer: Boolean): Boolean {
+        return try {
+            val builder = StarXpandCommandBuilder()
+            builder.addDocument(
+                DocumentBuilder()
+                    .addPrinter(
+                        PrinterBuilder()
+                            .styleAlignment(Alignment.Left)
+                            .actionPrintImage(ImageParameter(bitmap, 560))
+                            .styleInternationalCharacter(InternationalCharacterType.Usa)
+                            .actionCut(CutType.Partial)
+                    )
+            )
 
-        scope.launch {
-            try {
-                val builder = StarXpandCommandBuilder()
+            if (shouldOpenCashDrawer) {
                 builder.addDocument(
                     DocumentBuilder()
-                        .addPrinter(
-                            PrinterBuilder()
-                                .styleAlignment(Alignment.Left)
-                                .actionPrintImage(ImageParameter(bitmap, 560))
-                                .styleInternationalCharacter(InternationalCharacterType.Usa)
-                                .actionCut(CutType.Partial)
+                        .addDrawer(
+                            DrawerBuilder()
+                                .actionOpen(
+                                    OpenParameter()
+                                    .setChannel(Channel.No1)
+                                )
                         )
                 )
-                val commands = builder.getCommands()
+            }
 
-                printer.openAsync().await()
-                printer.printAsync(commands).await()
-            } catch (e: StarIO10Exception) {
-                e.printStackTrace()
-            } finally {
+            val commands = builder.getCommands()
+
+            printer.openAsync().await()
+            printer.printAsync(commands).await()
+            true
+        } catch (e: StarIO10Exception) {
+            e.printStackTrace()
+            false
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        } finally {
+            try {
                 printer.closeAsync().await()
+            } catch (e: Exception) {
+                // Ignore close errors
             }
         }
     }

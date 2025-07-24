@@ -19,6 +19,9 @@ import com.dantsu.escposprinter.connection.usb.UsbConnection
 import com.dantsu.escposprinter.connection.usb.UsbPrintersConnections
 import com.dantsu.escposprinter.textparser.PrinterTextParserImg
 import java.lang.ref.WeakReference
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 
 
 object DantsuPrintManager : PrinterManager {
@@ -32,131 +35,89 @@ object DantsuPrintManager : PrinterManager {
         context = WeakReference<Context>(config.context)
     }
 
-    private fun getPrintBroadcastReceiver(bitmap: Bitmap, shouldOpenCashDrawer: Boolean): BroadcastReceiver {
-        return object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent) {
-                val action = intent.action
-                val permissionGranted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
-                if (ACTION_USB_PERMISSION == action && permissionGranted) {
-                    synchronized(this) {
-                        val usbServiceManager = context?.getSystemService(Context.USB_SERVICE) as UsbManager?
-                        val usbDevice = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice::class.java)
-                        } else {
-                            @Suppress("DEPRECATION")
-                            intent.getParcelableExtra(UsbManager.EXTRA_DEVICE) as UsbDevice?
-                        }
-                        if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                            if (usbServiceManager != null && usbDevice != null) {
-                                PrintingQueue.addPrintingTask {
-                                    printImage(
-                                        usbServiceManager,
-                                        usbDevice,
-                                        bitmap,
-                                        shouldOpenCashDrawer
-                                    )
-                                }
-                                context?.unregisterReceiver(this)
-                            }
-                        }
-                    }
+    override suspend fun printBitmap(bitmap: Bitmap, shouldOpenCashDrawer: Boolean): Boolean = withContext(Dispatchers.IO) {
+        val result = CompletableDeferred<Boolean>()
+        
+        try {
+            val usbConnection: UsbConnection? = UsbPrintersConnections.selectFirstConnected(context.get())
+            val usbManager = context.get()?.getSystemService(Context.USB_SERVICE) as UsbManager?
+
+            if (usbConnection != null && usbManager != null) {
+                val usbPermissionIntent = Intent(ACTION_USB_PERMISSION).apply {
+                    setPackage(context.get()?.packageName)
                 }
-            }
-        }
-    }
+                val usbPermissionIntentFilter = IntentFilter(ACTION_USB_PERMISSION)
 
-    private fun getPaperCutBroadcastReceiver(): BroadcastReceiver {
-
-        return object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent) {
-                val action = intent.action
-                val permissionGranted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
-                if (ACTION_USB_PERMISSION == action && permissionGranted) {
-                    synchronized(this) {
-                        val usbServiceManager = context?.getSystemService(Context.USB_SERVICE) as UsbManager?
-                        val usbDevice = intent.getParcelableExtra<Parcelable>(UsbManager.EXTRA_DEVICE) as UsbDevice?
-                        if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                            if (usbServiceManager != null && usbDevice != null) {
-                                PrintingQueue.addPrintingTask(
-                                    Runnable {
-                                        cutPaper()
+                val receiver = object : BroadcastReceiver() {
+                    override fun onReceive(context: Context?, intent: Intent) {
+                        val action = intent.action
+                        val permissionGranted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
+                        if (ACTION_USB_PERMISSION == action) {
+                            synchronized(this) {
+                                if (permissionGranted) {
+                                    val usbServiceManager = context?.getSystemService(Context.USB_SERVICE) as UsbManager?
+                                    val usbDevice = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice::class.java)
+                                    } else {
+                                        @Suppress("DEPRECATION")
+                                        intent.getParcelableExtra(UsbManager.EXTRA_DEVICE) as UsbDevice?
                                     }
-                                )
-                                PrintingQueue.addPrintingTask {
-                                    cutPaper()
+                                    if (usbServiceManager != null && usbDevice != null) {
+                                        PrintingQueue.addPrintingTask {
+                                            try {
+                                                printImage(
+                                                    usbServiceManager,
+                                                    usbDevice,
+                                                    bitmap,
+                                                    shouldOpenCashDrawer
+                                                )
+                                                result.complete(true)
+                                            } catch (e: Exception) {
+                                                e.printStackTrace()
+                                                result.complete(false)
+                                            }
+                                        }
+                                    } else {
+                                        result.complete(false)
+                                    }
+                                } else {
+                                    result.complete(false)
                                 }
                                 context?.unregisterReceiver(this)
                             }
                         }
                     }
                 }
-            }
-        }
-    }
 
-    private fun getCashDrawerOpenBroadcastReceiver(): BroadcastReceiver {
-        return object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent) {
-                val action = intent.action
-                val permissionGranted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
-                if (ACTION_USB_PERMISSION == action && permissionGranted) {
-                    synchronized(this) {
-                        val usbServiceManager = context?.getSystemService(Context.USB_SERVICE) as UsbManager?
-                        val usbDevice = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice::class.java)
-                        } else {
-                            @Suppress("DEPRECATION")
-                            intent.getParcelableExtra(UsbManager.EXTRA_DEVICE) as UsbDevice?
-                        }
-                        if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                            if (usbServiceManager != null && usbDevice != null) {
-                                PrintingQueue.addPrintingTask {
-                                    openCashDrawer()
-                                }
-                                PrintingQueue.addPrintingTask {
-                                    openCashDrawer()
-                                }
-                                context?.unregisterReceiver(this)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-
-    override fun printBitmap(bitmap: Bitmap, shouldOpenCashDrawer: Boolean) {
-        val usbConnection: UsbConnection? = UsbPrintersConnections.selectFirstConnected(context.get())
-        val usbManager = context.get()?.getSystemService(Context.USB_SERVICE) as UsbManager?
-
-        val usbPermissionIntent = Intent(ACTION_USB_PERMISSION).apply {
-            setPackage(context.get()?.packageName)
-        }
-        val usbPermissionIntentFilter = IntentFilter(ACTION_USB_PERMISSION)
-
-        if (usbConnection != null && usbManager != null) {
-            val permissionIntent = PendingIntent.getBroadcast(
-                context.get(),
-                0,
-                usbPermissionIntent,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
-            )
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                context.get()?.registerReceiver(
-                    getPrintBroadcastReceiver(bitmap, shouldOpenCashDrawer),
-                    usbPermissionIntentFilter,
-                    Context.RECEIVER_NOT_EXPORTED
+                val permissionIntent = PendingIntent.getBroadcast(
+                    context.get(),
+                    0,
+                    usbPermissionIntent,
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
                 )
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    context.get()?.registerReceiver(
+                        receiver,
+                        usbPermissionIntentFilter,
+                        Context.RECEIVER_NOT_EXPORTED
+                    )
+                } else {
+                    context.get()?.registerReceiver(
+                        receiver,
+                        usbPermissionIntentFilter
+                    )
+                }
+                usbManager.requestPermission(usbConnection.device, permissionIntent)
             } else {
-                context.get()?.registerReceiver(
-                    getPrintBroadcastReceiver(bitmap, shouldOpenCashDrawer),
-                    usbPermissionIntentFilter
-                )
+                result.complete(false)
             }
-            usbManager.requestPermission(usbConnection.device, permissionIntent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            result.complete(false)
         }
+        
+        return@withContext result.await()
     }
 
     private fun rescale(printer: EscPosPrinter, bitmap: Bitmap): Bitmap {
@@ -185,52 +146,38 @@ object DantsuPrintManager : PrinterManager {
         bitmap: Bitmap,
         shouldOpenCashDrawer: Boolean
     ) {
-        val width: Int = bitmap.width
-        val height: Int = bitmap.height
-        var textToPrint = ""
-        val printer = EscPosPrinter(UsbConnection(usbManager, usbDevice), 200, 72f, 47)
+        try {
+            val width: Int = bitmap.width
+            val height: Int = bitmap.height
+            var textToPrint = ""
+            val printer = EscPosPrinter(UsbConnection(usbManager, usbDevice), 200, 72f, 47)
 
-        var y = 0
-        while (y < height) {
-            val newBitmap = Bitmap.createBitmap(
-                bitmap, 0, y, width,
-                if (y + 256 >= height) height - y else 256
-            )
-            textToPrint += ("[C]<img>${ getFormattedPrintText(printer, newBitmap) }</img>\n")
-            y += 256
-        }
+            var y = 0
+            while (y < height) {
+                val newBitmap = Bitmap.createBitmap(
+                    bitmap, 0, y, width,
+                    if (y + 256 >= height) height - y else 256
+                )
+                textToPrint += ("[C]<img>${ getFormattedPrintText(printer, newBitmap) }</img>\n")
+                y += 256
+            }
 
-        textToPrint += "[C]\n\n"
+            textToPrint += "[C]\n\n"
 
-        if (shouldOpenCashDrawer) {
-            printer.printFormattedTextAndOpenCashBox(textToPrint,20f)
-        }else{
-            printer.printFormattedText(textToPrint)
-            Thread.sleep(300)
-            cutPaper()
-        }
-        printer.disconnectPrinter()
-    }
-
-
-    fun requestOpenCashDrawer(){
-        val usbConnection: UsbConnection? = UsbPrintersConnections.selectFirstConnected(context.get())
-        val usbManager = context.get()?.getSystemService(Context.USB_SERVICE) as UsbManager?
-
-        val usbPermissionIntent = Intent(ACTION_USB_PERMISSION)
-        val usbPermissionIntentFilter = IntentFilter(ACTION_USB_PERMISSION);
-
-        if (usbConnection != null && usbManager != null) {
-            val permissionIntent = PendingIntent.getBroadcast(
-                context.get(),
-                0,
-                usbPermissionIntent,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
-            )
-            context.get()?.registerReceiver(getCashDrawerOpenBroadcastReceiver(), usbPermissionIntentFilter)
-            usbManager.requestPermission(usbConnection.device, permissionIntent)
+            if (shouldOpenCashDrawer) {
+                printer.printFormattedTextAndOpenCashBox(textToPrint,20f)
+            }else{
+                printer.printFormattedText(textToPrint)
+                Thread.sleep(300)
+                cutPaper()
+            }
+            printer.disconnectPrinter()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw e
         }
     }
+
 
     override fun openCashDrawer() {
         val usbConnection: UsbConnection? = UsbPrintersConnections.selectFirstConnected(context.get())
@@ -238,26 +185,6 @@ object DantsuPrintManager : PrinterManager {
         printerRaw.connect()
         printerRaw.openCashBox()
         printerRaw.disconnect()
-    }
-
-
-    fun requestCutPaper(){
-        val usbConnection: UsbConnection? = UsbPrintersConnections.selectFirstConnected(context.get())
-        val usbManager = context.get()?.getSystemService(Context.USB_SERVICE) as UsbManager?
-
-        val usbPermissionIntent = Intent(ACTION_USB_PERMISSION)
-        val usbPermissionIntentFilter = IntentFilter(ACTION_USB_PERMISSION);
-
-        if (usbConnection != null && usbManager != null) {
-            val permissionIntent = PendingIntent.getBroadcast(
-                context.get(),
-                0,
-                usbPermissionIntent,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
-            )
-            context.get()?.registerReceiver(getPaperCutBroadcastReceiver(), usbPermissionIntentFilter)
-            usbManager.requestPermission(usbConnection.device, permissionIntent)
-        }
     }
 
     override fun cutPaper() {

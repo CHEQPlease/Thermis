@@ -22,17 +22,18 @@ object ThermisManager {
         Receiptify.init(config.context)
     }
 
-    fun printCheqReceipt(receiptDTO: String, shouldOpenCashDrawer: Boolean = false) {
-        val bitmap = Receiptify.buildReceipt(receiptDTO)
-        if (bitmap != null) {
-           try {
-               printerManager.printBitmap(bitmap)
-               if (shouldOpenCashDrawer) {
-                   printerManager.openCashDrawer()
-               }
-           } catch (e: Exception) {
-               e.printStackTrace()
-           }
+    suspend fun printCheqReceipt(receiptDTO: String, shouldOpenCashDrawer: Boolean = false): Boolean {
+        return try {
+            val bitmap = Receiptify.buildReceipt(receiptDTO)
+            if (bitmap != null) {
+                val printResult = printerManager.printBitmap(bitmap, shouldOpenCashDrawer)
+                printResult
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
     }
 

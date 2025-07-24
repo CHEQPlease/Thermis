@@ -59,8 +59,10 @@ class ThermisPlugin : FlutterPlugin, MethodCallHandler {
                 val receiptDTO = call.argument<String>("receipt_dto_json")
                 val openCashDrawer = call.argument<Boolean>("open_cash_drawer") ?: false
                 if (receiptDTO != null) {
-                    ThermisManager.printCheqReceipt(receiptDTO, openCashDrawer)
-                    result.success(true)
+                    coroutineScope.launch {
+                        val success = ThermisManager.printCheqReceipt(receiptDTO, openCashDrawer)
+                        result.success(success)
+                    }
                 } else {
                     result.success(false)
                 }
