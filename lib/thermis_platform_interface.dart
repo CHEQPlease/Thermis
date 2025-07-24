@@ -28,7 +28,7 @@ abstract class ThermisPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<bool?> printCHEQReceipt(String receiptDTOJSON, PrinterConfig config) {
+  Future<PrintResult?> printCHEQReceipt(String receiptDTOJson, {PrinterConfig? config}) {
     throw UnimplementedError('printCHEQReceipt() has not been implemented.');
   }
 

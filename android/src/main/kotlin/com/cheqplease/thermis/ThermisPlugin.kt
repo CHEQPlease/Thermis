@@ -71,17 +71,31 @@ class ThermisPlugin : FlutterPlugin, MethodCallHandler {
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         when (call.method) {
             "print_cheq_receipt" -> {
-                val receiptDTO = call.argument<String>("receipt_dto_json")
-                val openCashDrawer = call.argument<Boolean>("open_cash_drawer") ?: false
+                val receiptDTO = call.argument<String>("receiptDTO")
+                val shouldOpenCashDrawer = call.argument<Boolean>("shouldOpenCashDrawer") ?: false
                 val config = createPrinterConfig(call)
                 
                 if (receiptDTO != null && config != null) {
                     coroutineScope.launch {
-                        val success = ThermisManager.printCheqReceipt(receiptDTO, config, openCashDrawer)
-                        result.success(success)
+                        try {
+                            val printResult = ThermisManager.printCheqReceipt(receiptDTO, config, shouldOpenCashDrawer)
+                            result.success(printResult.toMap())
+                        } catch (e: Exception) {
+                            val errorResult = PrintResult.Failed(
+                                PrintFailureReason.UNKNOWN_ERROR,
+                                false,
+                                e.message ?: "Unknown error occurred"
+                            )
+                            result.success(errorResult.toMap())
+                        }
                     }
                 } else {
-                    result.success(false)
+                    val errorResult = PrintResult.Failed(
+                        PrintFailureReason.UNKNOWN_ERROR,
+                        false,
+                        "Missing required parameters: receiptDTO or printer configuration"
+                    )
+                    result.success(errorResult.toMap())
                 }
             }
             "open_cash_drawer" -> {

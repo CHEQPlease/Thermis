@@ -6,6 +6,8 @@ import com.starmicronics.stario10.*
 import android.graphics.Bitmap
 import com.cheqplease.thermis.PrinterConfig
 import com.cheqplease.thermis.PrinterManager
+import com.cheqplease.thermis.PrintResult
+import com.cheqplease.thermis.PrintFailureReason
 import com.starmicronics.stario10.starxpandcommand.PrinterBuilder
 import com.starmicronics.stario10.starxpandcommand.DocumentBuilder
 import kotlinx.coroutines.CoroutineScope
@@ -21,12 +23,19 @@ import com.cheqplease.thermis.utils.MacUtils
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 
 object StarPrinterManager : PrinterManager {
     private var context: WeakReference<Context>? = null
     private var macAddresses: List<String> = emptyList()
     private var discoveryManager: StarDeviceDiscoveryManager? = null
     private var eventSink: EventChannel.EventSink? = null
+    
+    // Retry configuration
+    private const val MAX_RETRIES = 3
+    private const val BASE_RETRY_DELAY_MS = 3000L
+    private const val OPERATION_TIMEOUT_MS = 30000L // 30 seconds
 
     override fun init(config: PrinterConfig) {
         this.context = WeakReference(config.context)
@@ -64,7 +73,6 @@ object StarPrinterManager : PrinterManager {
                 listOf(InterfaceType.Lan),
                 context?.get() ?: throw IllegalStateException("Context cannot be null")
             )
-
 
             discoveryManager?.discoveryTime = 10000
             discoveryManager?.callback = object : StarDeviceDiscoveryManager.Callback {
@@ -117,7 +125,7 @@ object StarPrinterManager : PrinterManager {
         val results = printJobs.awaitAll()
         
         // Return true if at least one device group was successful
-        return results.any { it }
+        return results.any { it.isSuccess() }
     }
 
     private suspend fun printToDeviceMultipleTimes(
@@ -125,69 +133,110 @@ object StarPrinterManager : PrinterManager {
         macAddress: String, 
         times: Int, 
         shouldOpenCashDrawer: Boolean
-    ): Boolean {
+    ): PrintResult {
         var successCount = 0
+        var lastResult: PrintResult = PrintResult.Failed(PrintFailureReason.UNKNOWN_ERROR, false)
         
         // Print to the same device multiple times sequentially
         repeat(times) { attempt ->
-            try {
-                val success = printToSingleDevice(bitmap, macAddress, shouldOpenCashDrawer)
-                if (success) {
-                    successCount++
-                }
-                
-                // Add delay between prints to the same device to avoid busy conflicts
-                if (attempt < times - 1) { // Don't delay after the last print
-                    delay(1000) // 1 second delay between prints to same device
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
+            val result = printToSingleDeviceWithRetry(bitmap, macAddress, shouldOpenCashDrawer)
+            lastResult = if (result.isSuccess()) {
+                successCount++
+                result
+            } else {
+                result
+            }
+            
+            // Add delay between prints to the same device to avoid busy conflicts
+            if (attempt < times - 1) { // Don't delay after the last print
+                delay(1000) // 1 second delay between prints to same device
             }
         }
         
-        return successCount > 0
+        return if (successCount > 0) PrintResult.Success else lastResult
     }
 
-    private suspend fun printToSingleDevice(bitmap: Bitmap, macAddress: String, shouldOpenCashDrawer: Boolean): Boolean {
+    private suspend fun printToSingleDeviceWithRetry(
+        bitmap: Bitmap, 
+        macAddress: String, 
+        shouldOpenCashDrawer: Boolean
+    ): PrintResult {
+        repeat(MAX_RETRIES) { attempt ->
+            val result = printToSingleDevice(bitmap, macAddress, shouldOpenCashDrawer)
+            
+            when {
+                result.isSuccess() -> return result
+                result is PrintResult.Failed && result.retryable && attempt < MAX_RETRIES - 1 -> {
+//                    val delayMs = calculateBackoffDelay(attempt)
+                    val delayMs = BASE_RETRY_DELAY_MS
+                    println("Print failed (${result.reason}), retrying in ${delayMs}ms (attempt ${attempt + 1})")
+                    delay(delayMs)
+                }
+                else -> return result
+            }
+        }
+        
+        return PrintResult.Failed(
+            PrintFailureReason.UNKNOWN_ERROR, 
+            false, 
+            "Max retries exceeded"
+        )
+    }
+
+    private suspend fun printToSingleDevice(
+        bitmap: Bitmap, 
+        macAddress: String, 
+        shouldOpenCashDrawer: Boolean
+    ): PrintResult {
         val printer = createPrinter(macAddress)
         
         return try {
-            val builder = StarXpandCommandBuilder()
-            builder.addDocument(
-                DocumentBuilder()
-                    .addPrinter(
-                        PrinterBuilder()
-                            .styleAlignment(Alignment.Left)
-                            .actionPrintImage(ImageParameter(bitmap, 560))
-                            .styleInternationalCharacter(InternationalCharacterType.Usa)
-                            .actionCut(CutType.Partial)
-                    )
-            )
-
-            if (shouldOpenCashDrawer) {
+            withTimeout(OPERATION_TIMEOUT_MS) {
+                val builder = StarXpandCommandBuilder()
                 builder.addDocument(
                     DocumentBuilder()
-                        .addDrawer(
-                            DrawerBuilder()
-                                .actionOpen(
-                                    OpenParameter()
-                                    .setChannel(Channel.No1)
-                                )
+                        .addPrinter(
+                            PrinterBuilder()
+                                .styleAlignment(Alignment.Left)
+                                .actionPrintImage(ImageParameter(bitmap, 560))
+                                .styleInternationalCharacter(InternationalCharacterType.Usa)
+                                .actionCut(CutType.Partial)
                         )
                 )
+
+                if (shouldOpenCashDrawer) {
+                    builder.addDocument(
+                        DocumentBuilder()
+                            .addDrawer(
+                                DrawerBuilder()
+                                    .actionOpen(
+                                        OpenParameter()
+                                        .setChannel(Channel.No1)
+                                    )
+                            )
+                    )
+                }
+
+                val commands = builder.getCommands()
+
+                printer.openAsync().await()
+                printer.printAsync(commands).await()
+                PrintResult.Success
             }
-
-            val commands = builder.getCommands()
-
-            printer.openAsync().await()
-            printer.printAsync(commands).await()
-            true
+        } catch (e: TimeoutCancellationException) {
+            PrintResult.Failed(PrintFailureReason.TIMEOUT_ERROR, true, "Operation timed out")
+        } catch (e: StarIO10NotFoundException) {
+            PrintResult.Failed(PrintFailureReason.PRINTER_NOT_FOUND, false, e.message)
+        } catch (e: StarIO10CommunicationException) {
+            PrintResult.Failed(PrintFailureReason.COMMUNICATION_ERROR, true, e.message)
+        } catch (e: StarIO10BadResponseException) {
+            val failureReason = classifyBadResponse(e.message)
+            PrintResult.Failed(failureReason, failureReason.isRetryable(), e.message)
         } catch (e: StarIO10Exception) {
-            e.printStackTrace()
-            false
+            val failureReason = classifyStarIOException(e)
+            PrintResult.Failed(failureReason, failureReason.isRetryable(), e.message)
         } catch (e: Exception) {
-            e.printStackTrace()
-            false
+            PrintResult.Failed(PrintFailureReason.UNKNOWN_ERROR, false, e.message)
         } finally {
             try {
                 printer.closeAsync().await()
@@ -195,6 +244,32 @@ object StarPrinterManager : PrinterManager {
                 // Ignore close errors
             }
         }
+    }
+
+    private fun classifyBadResponse(message: String?): PrintFailureReason {
+        return when {
+            message?.contains("paper", ignoreCase = true) == true -> PrintFailureReason.OUT_OF_PAPER
+            message?.contains("cover", ignoreCase = true) == true -> PrintFailureReason.COVER_OPEN
+            message?.contains("busy", ignoreCase = true) == true -> PrintFailureReason.PRINTER_BUSY
+            message?.contains("offline", ignoreCase = true) == true -> PrintFailureReason.PRINTER_OFFLINE
+            else -> PrintFailureReason.UNKNOWN_ERROR
+        }
+    }
+
+    private fun classifyStarIOException(exception: StarIO10Exception): PrintFailureReason {
+        return when {
+            exception.message?.contains("busy", ignoreCase = true) == true -> PrintFailureReason.PRINTER_BUSY
+            exception.message?.contains("in use", ignoreCase = true) == true -> PrintFailureReason.DEVICE_IN_USE
+            exception.message?.contains("network", ignoreCase = true) == true -> PrintFailureReason.NETWORK_ERROR
+            exception.message?.contains("timeout", ignoreCase = true) == true -> PrintFailureReason.TIMEOUT_ERROR
+            exception.message?.contains("offline", ignoreCase = true) == true -> PrintFailureReason.PRINTER_OFFLINE
+            else -> PrintFailureReason.COMMUNICATION_ERROR
+        }
+    }
+
+    private fun calculateBackoffDelay(attempt: Int): Long {
+        // Exponential backoff: 1s, 2s, 4s, etc.
+        return BASE_RETRY_DELAY_MS * (1L shl attempt)
     }
 
     override suspend fun checkConnection(): Boolean {
@@ -220,8 +295,10 @@ object StarPrinterManager : PrinterManager {
         val printer = createPrinter(macAddress)
         
         return try {
-            printer.openAsync().await()
-            true
+            withTimeout(5000) { // 5 second timeout for connection check
+                printer.openAsync().await()
+                true
+            }
         } catch (e: Exception) {
             false
         } finally {
@@ -268,22 +345,24 @@ object StarPrinterManager : PrinterManager {
         val printer = createPrinter(macAddress)
         
         try {
-            val builder = StarXpandCommandBuilder()
-            builder.addDocument(
-                DocumentBuilder()
-                    .addDrawer(
-                        DrawerBuilder()
-                            .actionOpen(
-                                OpenParameter()
-                                .setChannel(Channel.No1)
-                            )
-                    )
-            )
+            withTimeout(10000) { // 10 second timeout
+                val builder = StarXpandCommandBuilder()
+                builder.addDocument(
+                    DocumentBuilder()
+                        .addDrawer(
+                            DrawerBuilder()
+                                .actionOpen(
+                                    OpenParameter()
+                                    .setChannel(Channel.No1)
+                                )
+                        )
+                )
 
-            val commands = builder.getCommands()
+                val commands = builder.getCommands()
 
-            printer.openAsync().await()
-            printer.printAsync(commands).await()
+                printer.openAsync().await()
+                printer.printAsync(commands).await()
+            }
         } catch (e: StarIO10NotFoundException) {
             // Handle printer not found error
             e.printStackTrace()
@@ -334,18 +413,20 @@ object StarPrinterManager : PrinterManager {
         val printer = createPrinter(macAddress)
         
         try {
-            val builder = StarXpandCommandBuilder()
-            builder.addDocument(
-                DocumentBuilder()
-                    .addPrinter(
-                        PrinterBuilder()
-                            .actionCut(CutType.Partial)
-                    )
-            )
-            val commands = builder.getCommands()
+            withTimeout(10000) { // 10 second timeout
+                val builder = StarXpandCommandBuilder()
+                builder.addDocument(
+                    DocumentBuilder()
+                        .addPrinter(
+                            PrinterBuilder()
+                                .actionCut(CutType.Partial)
+                        )
+                )
+                val commands = builder.getCommands()
 
-            printer.openAsync().await()
-            printer.printAsync(commands).await()
+                printer.openAsync().await()
+                printer.printAsync(commands).await()
+            }
         } catch (e: StarIO10Exception) {
             e.printStackTrace()
         } finally {

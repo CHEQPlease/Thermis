@@ -550,7 +550,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   ElevatedButton.icon(
                     onPressed: () async {
                       final receiptDTOJSON = await rootBundle.loadString('assets/customer.json');
-                      await Thermis.printReceipt(receiptDTOJSON);
+                      final result = await Thermis.printReceipt(receiptDTOJSON);
+                      
+                      if (result?.success == true) {
+                        print('✅ USB Print successful');
+                      } else if (result != null) {
+                        print('❌ USB Print failed: ${result.reason?.displayName}');
+                        if (result.retryable) {
+                          print('   → Retryable error, system will auto-retry');
+                        }
+                        if (result.message != null) {
+                          print('   → Details: ${result.message}');
+                        }
+                      }
                     },
                     icon: const Icon(Icons.print),
                     label: const Text('Test Print'),
@@ -615,24 +627,30 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: const Icon(Icons.queue_outlined),
                     label: const Text('Check Device Queues'),
                   ),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: _testErrorHandling,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF9800),
+                    ),
+                    icon: const Icon(Icons.error_outline),
+                    label: const Text('Test Error Handling'),
+                  ),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () async {
                       final receiptDTOJSON = await rootBundle.loadString('assets/kitchen.json');
+
+                      
                       // Print to multiple devices simultaneously
-                      Thermis.printReceipt(receiptDTOJSON, config: PrinterConfig(
+                      await Thermis.printReceipt(receiptDTOJSON, config: PrinterConfig(
                         printerType: PrinterType.starMCLan,
                         macAddresses: selectedPrinter == '-' 
                           ? [] // Demo multiple MACs
-                          : [selectedPrinter, selectedPrinter, selectedPrinter],
+                          : [selectedPrinter],
                       ));
 
-                      Thermis.printReceipt(receiptDTOJSON, config: PrinterConfig(
-                        printerType: PrinterType.starMCLan,
-                        macAddresses: selectedPrinter == '-'
-                            ? [] // Demo multiple MACs
-                            : [selectedPrinter, selectedPrinter, selectedPrinter],
-                      ));
+                      // Display results
                     },
                     icon: const Icon(Icons.print),
                     label: Text(selectedPrinter == '-' 
@@ -671,9 +689,63 @@ class _HomeScreenState extends State<HomeScreen> {
       ];
 
       final results = await Future.wait(futures);
-      print('Parallel Print Results: $results');
+      
+      // Display detailed results
+      for (int i = 0; i < results.length; i++) {
+        final result = results[i];
+        final printerName = ['USB', 'LAN1', 'LAN2'][i];
+        
+        if (result?.success == true) {
+          print('✅ $printerName: Print successful');
+        } else if (result != null) {
+          print('❌ $printerName: ${result.reason?.displayName ?? 'Unknown error'}');
+          if (result.retryable) {
+            print('   → This error is retryable');
+          }
+          if (result.message != null) {
+            print('   → Details: ${result.message}');
+          }
+        } else {
+          print('❌ $printerName: No result returned');
+        }
+      }
+      
+      print('Parallel Print Test Complete');
     } catch (e) {
       print('Parallel Print Error: $e');
+    }
+  }
+
+  Future<void> _testErrorHandling() async {
+    try {
+      print('Testing error handling with invalid printer...');
+      
+      // Test with invalid MAC address to trigger error
+      final invalidConfig = PrinterConfig(
+        printerType: PrinterType.starMCLan,
+        macAddresses: ['INVALID:MAC:ADDRESS'],
+      );
+
+      final result = await Thermis.printReceipt('{"test": "Error test"}', config: invalidConfig);
+      
+      if (result?.success == true) {
+        print('✅ Print successful (unexpected!)');
+      } else if (result != null) {
+        print('❌ Print failed as expected:');
+        print('   → Reason: ${result.reason?.displayName ?? 'Unknown'}');
+        print('   → Retryable: ${result.retryable}');
+        print('   → Message: ${result.message ?? 'No details'}');
+        
+        if (result.retryable) {
+          print('   → ⚡ This error would be automatically retried by the system');
+        } else {
+          print('   → 🚫 This error would not be retried');
+        }
+      } else {
+        print('❌ No result returned');
+      }
+    } catch (e) {
+      print('Error Handling Test Error: $e');
     }
   }
 

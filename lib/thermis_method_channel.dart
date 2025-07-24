@@ -13,13 +13,26 @@ class MethodChannelThermis extends ThermisPlatform {
   final eventChannel = const EventChannel('thermis/starmc_discovery');
 
   @override
-  Future<bool?> printCHEQReceipt(String receiptDTOJSON, PrinterConfig config) async {
-    final Map<String, dynamic> arguments = {
-      'receipt_dto_json': receiptDTOJSON,
-      ...config.toMap(),
+  Future<PrintResult?> printCHEQReceipt(String receiptDTOJson, {PrinterConfig? config}) async {
+    final arguments = <String, dynamic>{
+      'receiptDTO': receiptDTOJson,
+      'shouldOpenCashDrawer': false,
     };
     
-    return await methodChannel.invokeMethod<bool>('print_cheq_receipt', arguments);
+    // Add printer config if provided
+    if (config != null) {
+      arguments.addAll(config.toMap());
+    } else {
+      // Default to USB generic if no config provided
+      final defaultConfig = PrinterConfig(printerType: PrinterType.usbGeneric);
+      arguments.addAll(defaultConfig.toMap());
+    }
+
+    final result = await methodChannel.invokeMethod<Map>('print_cheq_receipt', arguments);
+    if (result != null) {
+      return PrintResult.fromMap(result.cast<String, dynamic>());
+    }
+    return null;
   }
 
   @override

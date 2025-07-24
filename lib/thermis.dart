@@ -7,23 +7,22 @@ import 'package:thermis/device.dart';
 import 'thermis_platform_interface.dart';
 
 class Thermis {
-  static Future<bool?> printReceipt(String receiptDTOJSON, {PrinterConfig? config}) {
-    config ??= const PrinterConfig(printerType: PrinterType.usbGeneric);
-    return ThermisPlatform.instance.printCHEQReceipt(receiptDTOJSON, config);
+  static Future<PrintResult?> printReceipt(String receiptDTOJson, {PrinterConfig? config}) {
+    return ThermisPlatform.instance.printCHEQReceipt(receiptDTOJson, config: config);
   }
 
   static Future<bool?> openCashDrawer({PrinterConfig? config}) {
-    config ??= const PrinterConfig(printerType: PrinterType.usbGeneric);
+    config ??= PrinterConfig(printerType: PrinterType.usbGeneric);
     return ThermisPlatform.instance.openCashDrawer(config);
   }
 
   static Future<bool?> cutPaper({PrinterConfig? config}) {
-    config ??= const PrinterConfig(printerType: PrinterType.usbGeneric);
+    config ??= PrinterConfig(printerType: PrinterType.usbGeneric);
     return ThermisPlatform.instance.cutPaper(config);
   }
 
   static Future<bool?> checkPrinterConnection({PrinterConfig? config}) {
-    config ??= const PrinterConfig(printerType: PrinterType.usbGeneric);
+    config ??= PrinterConfig(printerType: PrinterType.usbGeneric);
     return ThermisPlatform.instance.checkPrinterConnection(config);
   }
 
