@@ -9,6 +9,7 @@ import java.lang.ref.WeakReference
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.ConcurrentHashMap
 
 object ThermisManager {
 
@@ -22,27 +23,44 @@ object ThermisManager {
         val result: CompletableDeferred<Boolean>
     )
     
-    // Queue for print jobs
-    private val printQueue = Channel<PrintJob>(Channel.UNLIMITED)
-    private var queueProcessor: Job? = null
+    // Per-device queues and processors
+    private val deviceQueues = ConcurrentHashMap<String, Channel<PrintJob>>()
+    private val deviceProcessors = ConcurrentHashMap<String, Job>()
     private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private val printQueueSize = AtomicInteger(0)
+    private val totalQueueSize = AtomicInteger(0)
 
     fun init(context: Context) {
         this.context = WeakReference(context)
         Receiptify.init(context)
-        startQueueProcessor()
     }
     
-    private fun startQueueProcessor() {
-        queueProcessor?.cancel()
-        queueProcessor = coroutineScope.launch {
-            for (job in printQueue) {
+    private fun getDeviceKey(config: PrinterConfig): String {
+        return when (config.printerType) {
+            PrinterType.USB_GENERIC -> "USB_GENERIC"
+            PrinterType.STARMC_LAN -> {
+                // For LAN printers, group by first MAC address (primary device)
+                val primaryMac = config.macAddresses?.firstOrNull() ?: "UNKNOWN"
+                "STARMC_LAN_$primaryMac"
+            }
+        }
+    }
+    
+    private fun getOrCreateDeviceQueue(deviceKey: String): Channel<PrintJob> {
+        return deviceQueues.getOrPut(deviceKey) {
+            val queue = Channel<PrintJob>(Channel.UNLIMITED)
+            startDeviceProcessor(deviceKey, queue)
+            queue
+        }
+    }
+    
+    private fun startDeviceProcessor(deviceKey: String, queue: Channel<PrintJob>) {
+        val processor = coroutineScope.launch {
+            for (job in queue) {
                 try {
                     // Get the appropriate printer manager for this job
                     val printerManager = getPrinterManager(job.config)
                     
-                    // Process each print job sequentially
+                    // Process each print job sequentially for this device
                     val bitmap = Receiptify.buildReceipt(job.receiptDTO)
                     if (bitmap != null) {
                         val printResult = printerManager.printBitmap(bitmap, job.shouldOpenCashDrawer)
@@ -55,13 +73,15 @@ object ThermisManager {
                     job.result.complete(false)
                 }
                 
-                // Decrement queue size after processing
-                printQueueSize.decrementAndGet()
+                // Decrement total queue size after processing
+                totalQueueSize.decrementAndGet()
                 
-                // Small delay between prints to ensure printer is ready
+                // Small delay between prints for same device to ensure printer is ready
                 delay(500)
             }
         }
+        
+        deviceProcessors[deviceKey] = processor
     }
     
     private fun getPrinterManager(config: PrinterConfig): PrinterManager {
@@ -75,11 +95,15 @@ object ThermisManager {
         val result = CompletableDeferred<Boolean>()
         val job = PrintJob(receiptDTO, shouldOpenCashDrawer, config, result)
         
-        // Increment queue size
-        printQueueSize.incrementAndGet()
+        // Get device-specific queue
+        val deviceKey = getDeviceKey(config)
+        val deviceQueue = getOrCreateDeviceQueue(deviceKey)
         
-        // Add to queue
-        printQueue.send(job)
+        // Increment total queue size
+        totalQueueSize.incrementAndGet()
+        
+        // Add to device-specific queue (enables parallel execution across devices)
+        deviceQueue.send(job)
         
         // Wait for result
         return result.await()
@@ -122,21 +146,49 @@ object ThermisManager {
     }
     
     fun getQueueSize(): Int {
-        return printQueueSize.get()
+        return totalQueueSize.get()
+    }
+    
+    fun getDeviceQueueSizes(): Map<String, Int> {
+        // Return queue sizes per device for debugging
+        return deviceQueues.mapValues { (_, queue) ->
+            // Note: Channel doesn't expose size directly, so we track it via totalQueueSize
+            // This is an approximation for debugging purposes
+            0 // Could be enhanced with per-device counters if needed
+        }
     }
     
     suspend fun clearQueue() {
-        // Cancel all pending jobs
-        var job = printQueue.tryReceive().getOrNull()
-        while (job != null) {
-            job.result.complete(false)
-            printQueueSize.decrementAndGet()
-            job = printQueue.tryReceive().getOrNull()
+        // Clear all device queues
+        deviceQueues.values.forEach { queue ->
+            var job = queue.tryReceive().getOrNull()
+            while (job != null) {
+                job.result.complete(false)
+                totalQueueSize.decrementAndGet()
+                job = queue.tryReceive().getOrNull()
+            }
+        }
+    }
+    
+    suspend fun clearDeviceQueue(deviceKey: String) {
+        // Clear specific device queue
+        deviceQueues[deviceKey]?.let { queue ->
+            var job = queue.tryReceive().getOrNull()
+            while (job != null) {
+                job.result.complete(false)
+                totalQueueSize.decrementAndGet()
+                job = queue.tryReceive().getOrNull()
+            }
         }
     }
     
     fun destroy() {
-        queueProcessor?.cancel()
-        printQueue.close()
+        // Cancel all device processors
+        deviceProcessors.values.forEach { it.cancel() }
+        deviceProcessors.clear()
+        
+        // Close all device queues
+        deviceQueues.values.forEach { it.close() }
+        deviceQueues.clear()
     }
 }

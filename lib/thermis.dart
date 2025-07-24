@@ -43,7 +43,15 @@ class Thermis {
     return ThermisPlatform.instance.getQueueSize();
   }
   
+  static Future<Map<String, int>?> getDeviceQueueSizes() {
+    return ThermisPlatform.instance.getDeviceQueueSizes();
+  }
+  
   static Future<bool?> clearPrintQueue() {
     return ThermisPlatform.instance.clearPrintQueue();
+  }
+  
+  static Future<bool?> clearDeviceQueue(String deviceKey) {
+    return ThermisPlatform.instance.clearDeviceQueue(deviceKey);
   }
 }

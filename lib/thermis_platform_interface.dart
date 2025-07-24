@@ -60,7 +60,15 @@ abstract class ThermisPlatform extends PlatformInterface {
     throw UnimplementedError('getQueueSize() has not been implemented.');
   }
   
+  Future<Map<String, int>?> getDeviceQueueSizes() {
+    throw UnimplementedError('getDeviceQueueSizes() has not been implemented.');
+  }
+  
   Future<bool?> clearPrintQueue() {
     throw UnimplementedError('clearPrintQueue() has not been implemented.');
+  }
+  
+  Future<bool?> clearDeviceQueue(String deviceKey) {
+    throw UnimplementedError('clearDeviceQueue() has not been implemented.');
   }
 }

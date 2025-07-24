@@ -70,7 +70,20 @@ class MethodChannelThermis extends ThermisPlatform {
   }
   
   @override
+  Future<Map<String, int>?> getDeviceQueueSizes() async {
+    final result = await methodChannel.invokeMethod<Map>('get_device_queue_sizes');
+    return result?.cast<String, int>();
+  }
+  
+  @override
   Future<bool?> clearPrintQueue() async {
     return await methodChannel.invokeMethod<bool>('clear_print_queue');
+  }
+  
+  @override
+  Future<bool?> clearDeviceQueue(String deviceKey) async {
+    return await methodChannel.invokeMethod<bool>('clear_device_queue', {
+      'device_key': deviceKey,
+    });
   }
 }

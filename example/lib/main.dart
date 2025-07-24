@@ -599,14 +599,39 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
+                    onPressed: _testParallelPrinting,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4CAF50),
+                    ),
+                    icon: const Icon(Icons.devices),
+                    label: const Text('Test Parallel Printing'),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: _checkDeviceQueues,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2196F3),
+                    ),
+                    icon: const Icon(Icons.queue_outlined),
+                    label: const Text('Check Device Queues'),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
                     onPressed: () async {
-                      final receiptDTOJSON = await rootBundle.loadString('assets/customer.json');
+                      final receiptDTOJSON = await rootBundle.loadString('assets/kitchen.json');
                       // Print to multiple devices simultaneously
                       Thermis.printReceipt(receiptDTOJSON, config: PrinterConfig(
                         printerType: PrinterType.starMCLan,
                         macAddresses: selectedPrinter == '-' 
                           ? [] // Demo multiple MACs
                           : [selectedPrinter, selectedPrinter, selectedPrinter],
+                      ));
+
+                      Thermis.printReceipt(receiptDTOJSON, config: PrinterConfig(
+                        printerType: PrinterType.starMCLan,
+                        macAddresses: selectedPrinter == '-'
+                            ? [] // Demo multiple MACs
+                            : [selectedPrinter, selectedPrinter, selectedPrinter],
                       ));
                     },
                     icon: const Icon(Icons.print),
@@ -621,5 +646,45 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _testParallelPrinting() async {
+    try {
+      print('Starting parallel print test...');
+      
+      // Test parallel printing to different devices
+      final usbConfig = PrinterConfig(printerType: PrinterType.usbGeneric);
+      final lan1Config = PrinterConfig(
+        printerType: PrinterType.starMCLan,
+        macAddresses: [selectedPrinter],
+      );
+      final lan2Config = PrinterConfig(
+        printerType: PrinterType.starMCLan,
+        macAddresses: ['11:22:33:44:55:66'],
+      );
+
+      // These will execute in parallel (different device queues)
+      final futures = [
+        Thermis.printReceipt('{"test": "USB printer"}', config: usbConfig),
+        Thermis.printReceipt('{"test": "LAN printer 1"}', config: lan1Config),
+        Thermis.printReceipt('{"test": "LAN printer 2"}', config: lan2Config),
+      ];
+
+      final results = await Future.wait(futures);
+      print('Parallel Print Results: $results');
+    } catch (e) {
+      print('Parallel Print Error: $e');
+    }
+  }
+
+  Future<void> _checkDeviceQueues() async {
+    try {
+      final deviceQueues = await Thermis.getDeviceQueueSizes();
+      final totalQueue = await Thermis.getQueueSize();
+      print('Total Queue: $totalQueue');
+      print('Device Queues: $deviceQueues');
+    } catch (e) {
+      print('Queue Check Error: $e');
+    }
   }
 }

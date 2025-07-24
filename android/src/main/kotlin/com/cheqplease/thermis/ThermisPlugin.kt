@@ -146,10 +146,25 @@ class ThermisPlugin : FlutterPlugin, MethodCallHandler {
                 val queueSize = ThermisManager.getQueueSize()
                 result.success(queueSize)
             }
+            "get_device_queue_sizes" -> {
+                val deviceQueueSizes = ThermisManager.getDeviceQueueSizes()
+                result.success(deviceQueueSizes)
+            }
             "clear_print_queue" -> {
                 coroutineScope.launch {
                     ThermisManager.clearQueue()
                     result.success(true)
+                }
+            }
+            "clear_device_queue" -> {
+                val deviceKey = call.argument<String>("device_key")
+                if (deviceKey != null) {
+                    coroutineScope.launch {
+                        ThermisManager.clearDeviceQueue(deviceKey)
+                        result.success(true)
+                    }
+                } else {
+                    result.success(false)
                 }
             }
             else -> {
