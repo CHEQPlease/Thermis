@@ -25,12 +25,14 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.CompletableDeferred
 
 object StarPrinterManager : PrinterManager {
     private var context: WeakReference<Context>? = null
     private var macAddresses: List<String> = emptyList()
     private var discoveryManager: StarDeviceDiscoveryManager? = null
     private var eventSink: EventChannel.EventSink? = null
+    private var discoveryDuration: Int = 5000 // Default 5 seconds as requested
     
     // Retry configuration
     private const val MAX_RETRIES = 3
@@ -40,6 +42,10 @@ object StarPrinterManager : PrinterManager {
     override fun init(config: PrinterConfig) {
         this.context = WeakReference(config.context)
         this.macAddresses = config.macAddresses ?: emptyList()
+    }
+    
+    fun setDiscoveryDuration(durationMs: Int) {
+        this.discoveryDuration = durationMs
     }
 
     private fun createPrinter(macAddress: String): StarPrinter {
@@ -60,7 +66,7 @@ object StarPrinterManager : PrinterManager {
         }
     }
 
-    private fun startDiscovery() {
+    private fun startDiscovery(customDurationMs: Int? = null) {
         try {
             // Ensure context is initialized before starting discovery
             if (context?.get() == null) {
@@ -74,7 +80,8 @@ object StarPrinterManager : PrinterManager {
                 context?.get() ?: throw IllegalStateException("Context cannot be null")
             )
 
-            discoveryManager?.discoveryTime = 10000
+            // Use custom duration if provided, otherwise use stored duration
+            discoveryManager?.discoveryTime = customDurationMs ?: discoveryDuration
             discoveryManager?.callback = object : StarDeviceDiscoveryManager.Callback {
                 override fun onPrinterFound(printer: StarPrinter) {
                     val deviceMap = mapOf(
@@ -434,6 +441,48 @@ object StarPrinterManager : PrinterManager {
                 printer.closeAsync().await()
             } catch (e: Exception) {
                 // Ignore close errors
+            }
+        }
+    }
+    
+    suspend fun getAvailableDevices(durationMs: Int = 10000): List<Map<String, Any?>> {
+        return withTimeout((durationMs + 2000).toLong()) { // Add 2 seconds buffer
+            val devices = mutableListOf<Map<String, Any?>>()
+            val result = CompletableDeferred<List<Map<String, Any?>>>()
+            
+            try {
+                // Ensure context is initialized
+                if (context?.get() == null) {
+                    throw IllegalStateException("StarPrinterManager not initialized")
+                }
+                
+                val discoveryManager = StarDeviceDiscoveryManagerFactory.create(
+                    listOf(InterfaceType.Lan),
+                    context?.get() ?: throw IllegalStateException("Context cannot be null")
+                )
+
+                discoveryManager.discoveryTime = durationMs
+                discoveryManager.callback = object : StarDeviceDiscoveryManager.Callback {
+                    override fun onPrinterFound(printer: StarPrinter) {
+                        val deviceMap = mapOf(
+                            "deviceName" to printer.information?.model?.name,
+                            "ip" to printer.information?.detail?.lan?.ipAddress,
+                            "mac" to MacUtils.formatMacAddress(printer.information?.detail?.lan?.macAddress)
+                        )
+                        devices.add(deviceMap)
+                    }
+
+                    override fun onDiscoveryFinished() {
+                        result.complete(devices.toList())
+                    }
+                }
+                
+                discoveryManager.startDiscovery()
+                
+                // Wait for discovery to complete
+                result.await()
+            } catch (e: Exception) {
+                throw e
             }
         }
     }

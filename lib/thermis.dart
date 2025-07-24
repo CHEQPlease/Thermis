@@ -30,8 +30,12 @@ class Thermis {
     return ThermisPlatform.instance.previewReceipt(receiptDTOJSON);
   }
 
-  static Stream<Device> discoverPrinters() {
-    return ThermisPlatform.instance.discoverPrinters();
+  static Stream<Device> discoverPrinters({int scanDurationMs = 5000}) {
+    return ThermisPlatform.instance.discoverPrinters(scanDurationMs: scanDurationMs);
+  }
+  
+  static Future<List<Device>> getAvailableDevices({int durationMs = 50000}) {
+    return ThermisPlatform.instance.getAvailableDevices(durationMs: durationMs);
   }
 
   static Future<void> stopDiscovery() {

@@ -65,11 +65,27 @@ class MethodChannelThermis extends ThermisPlatform {
   }
 
   @override
-  Stream<Device> discoverPrinters() {
-    return eventChannel.receiveBroadcastStream().map((dynamic event) {
+  Stream<Device> discoverPrinters({int scanDurationMs = 5000}) {
+    return eventChannel.receiveBroadcastStream({'durationMs': scanDurationMs}).map((dynamic event) {
       final Map<String, dynamic> deviceMap = Map<String, dynamic>.from(event);
       return Device.fromMap(deviceMap);
     });
+  }
+  
+  @override
+  Future<List<Device>> getAvailableDevices({int durationMs = 10000}) async {
+    final result = await methodChannel.invokeMethod<List>('get_available_devices', {
+      'durationMs': durationMs,
+    });
+    
+    if (result != null) {
+      return result.map((dynamic deviceMap) {
+        final Map<String, dynamic> map = Map<String, dynamic>.from(deviceMap);
+        return Device.fromMap(map);
+      }).toList();
+    }
+    
+    return [];
   }
 
   @override

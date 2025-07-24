@@ -607,7 +607,34 @@ class _HomeScreenState extends State<HomeScreen> {
                       _startDiscovery();
                     },
                     icon: const Icon(Icons.search),
-                    label: const Text('Discover LAN Printers'),
+                    label: const Text('Discover LAN Printers (5s)'),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: _testDiscoveryWithDuration,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF9C27B0),
+                    ),
+                    icon: const Icon(Icons.timer),
+                    label: const Text('Discovery (3s Custom)'),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: _testGetAvailableDevices,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF607D8B),
+                    ),
+                    icon: const Icon(Icons.list),
+                    label: const Text('Get Available Devices (8s)'),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: _demonstrateAllDiscoveryMethods,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF795548),
+                    ),
+                    icon: const Icon(Icons.science),
+                    label: const Text('Demo All Discovery Methods'),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
@@ -758,5 +785,118 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       print('Queue Check Error: $e');
     }
+  }
+
+  Future<void> _testDiscoveryWithDuration() async {
+    print('🔍 Testing discovery with 3-second duration...');
+    
+    setState(() {
+      isDiscovering = true;
+      discoveredPrinters.clear();
+    });
+
+    _discoverySubscription?.cancel();
+    _discoverySubscription = Thermis.discoverPrinters(scanDurationMs: 3000).listen(
+      (device) {
+        setState(() {
+          discoveredPrinters.add(device);
+        });
+        print('📱 Found device: ${device.deviceName} (${device.mac})');
+      },
+      onError: (error) {
+        print('❌ Discovery error: $error');
+        setState(() {
+          isDiscovering = false;
+        });
+      },
+      onDone: () {
+        print('✅ Discovery completed after 3 seconds');
+        setState(() {
+          isDiscovering = false;
+        });
+      },
+    );
+  }
+
+  Future<void> _testGetAvailableDevices() async {
+    print('📋 Testing getAvailableDevices with 8-second duration...');
+    
+    try {
+      final devices = await Thermis.getAvailableDevices(durationMs: 8000);
+      
+      print('📊 Discovery Results:');
+      print('   Found ${devices.length} device(s)');
+      
+      for (int i = 0; i < devices.length; i++) {
+        final device = devices[i];
+        print('   ${i + 1}. ${device.deviceName} - ${device.mac} (${device.ip})');
+      }
+      
+      setState(() {
+        discoveredPrinters = devices;
+      });
+      
+    } catch (e) {
+      print('❌ getAvailableDevices error: $e');
+    }
+  }
+
+  Future<void> _demonstrateAllDiscoveryMethods() async {
+    print('\n🚀 === COMPREHENSIVE DISCOVERY DEMO ===');
+    
+    // Method 1: discoverPrinters with default duration (5s)
+    print('\n1️⃣ Testing discoverPrinters() - Stream with 5s default duration:');
+    
+    final devices1 = <Device>[];
+    final subscription1 = Thermis.discoverPrinters().listen(
+      (device) {
+        devices1.add(device);
+        print('   📱 Stream (5s default): Found ${device.deviceName} (${device.mac})');
+      },
+      onDone: () {
+        print('   ✅ Stream completed - Found ${devices1.length} device(s)');
+      },
+    );
+    
+    await Future.delayed(const Duration(seconds: 6)); // Wait for completion
+    subscription1.cancel();
+    
+    // Method 2: discoverPrinters with custom duration (8s)
+    print('\n2️⃣ Testing discoverPrinters(scanDurationMs: 8000) - Stream with 8s custom duration:');
+    
+    final devices2 = <Device>[];
+    final subscription2 = Thermis.discoverPrinters(scanDurationMs: 8000).listen(
+      (device) {
+        devices2.add(device);
+        print('   📱 Stream (8s): Found ${device.deviceName} (${device.mac})');
+      },
+      onDone: () {
+        print('   ✅ Stream (8s) completed - Found ${devices2.length} device(s)');
+      },
+    );
+    
+    await Future.delayed(const Duration(seconds: 9)); // Wait for completion
+    subscription2.cancel();
+    
+    // Method 3: getAvailableDevices (Future<List>, custom duration)
+    print('\n3️⃣ Testing getAvailableDevices(durationMs: 6000) - Future<List> with 6s duration:');
+    
+    try {
+      final devices3 = await Thermis.getAvailableDevices(durationMs: 6000);
+      print('   ✅ Future<List> completed - Found ${devices3.length} device(s)');
+      
+      for (int i = 0; i < devices3.length; i++) {
+        final device = devices3[i];
+        print('   📱 List[$i]: ${device.deviceName} (${device.mac}) - ${device.ip}');
+      }
+    } catch (e) {
+      print('   ❌ Future<List> error: $e');
+    }
+    
+    print('\n📊 === DISCOVERY COMPARISON SUMMARY ===');
+    print('Method 1 (Stream, 5s default): ${devices1.length} devices');
+    print('Method 2 (Stream, 8s custom):   ${devices2.length} devices');  
+    print('Method 3 (Future<List>, 6s):    Found devices via await');
+    print('===========================================\n');
   }
 }

@@ -48,8 +48,12 @@ abstract class ThermisPlatform extends PlatformInterface {
     throw UnimplementedError('previewReceipt() has not been implemented.');
   }
 
-  Stream<Device> discoverPrinters() {
+  Stream<Device> discoverPrinters({int scanDurationMs = 5000}) {
     throw UnimplementedError('discoverPrinters() has not been implemented.');
+  }
+  
+  Future<List<Device>> getAvailableDevices({int durationMs = 10000}) {
+    throw UnimplementedError('getAvailableDevices() has not been implemented.');
   }
 
   Future<void> stopDiscovery() {

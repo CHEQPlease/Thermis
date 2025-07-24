@@ -39,6 +39,10 @@ class ThermisPlugin : FlutterPlugin, MethodCallHandler {
                     macAddresses = null
                 )
                 StarPrinterManager.init(discoveryConfig)
+                
+                // Get duration from arguments if provided
+                val durationMs = (arguments as? Map<*, *>)?.get("durationMs") as? Int ?: 5000
+                StarPrinterManager.setDiscoveryDuration(durationMs)
                 StarPrinterManager.setEventSink(events)
             }
 
@@ -155,6 +159,25 @@ class ThermisPlugin : FlutterPlugin, MethodCallHandler {
             "stop_discovery" -> {
                 StarPrinterManager.stopDiscovery()
                 result.success(null)
+            }
+            "get_available_devices" -> {
+                val durationMs = call.argument<Int>("durationMs") ?: 10000
+                coroutineScope.launch {
+                    try {
+                        // Initialize StarPrinterManager with context for discovery
+                        val discoveryConfig = PrinterConfig(
+                            context = applicationContext,
+                            printerType = PrinterType.STARMC_LAN,
+                            macAddresses = null
+                        )
+                        StarPrinterManager.init(discoveryConfig)
+                        
+                        val devices = StarPrinterManager.getAvailableDevices(durationMs)
+                        result.success(devices)
+                    } catch (e: Exception) {
+                        result.error("DISCOVERY_ERROR", e.message, null)
+                    }
+                }
             }
             "get_queue_size" -> {
                 val queueSize = ThermisManager.getQueueSize()
