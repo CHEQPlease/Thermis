@@ -13,31 +13,34 @@ class MethodChannelThermis extends ThermisPlatform {
   final eventChannel = const EventChannel('thermis/starmc_discovery');
 
   @override
-  Future<bool?> init(PrinterConfig config) async {
-    final result = await methodChannel.invokeMethod<bool>('init', config.toMap());
-    return result;
-  }
-
-  @override
-  Future<void> printCHEQReceipt(String receiptDTOJSON) async {
-    await methodChannel.invokeMethod<void>('print_cheq_receipt', {
+  Future<bool?> printCHEQReceipt(String receiptDTOJSON, PrinterConfig config) async {
+    final Map<String, dynamic> arguments = {
       'receipt_dto_json': receiptDTOJSON,
-    });
+      ...config.toMap(),
+    };
+    
+    return await methodChannel.invokeMethod<bool>('print_cheq_receipt', arguments);
   }
 
   @override
-  Future<bool?> openCashDrawer() async {
-    return await methodChannel.invokeMethod<bool>('open_cash_drawer');
+  Future<bool?> openCashDrawer(PrinterConfig config) async {
+    final Map<String, dynamic> arguments = config.toMap();
+    
+    return await methodChannel.invokeMethod<bool>('open_cash_drawer', arguments);
   }
 
   @override
-  Future<bool?> cutPaper() async {
-    return await methodChannel.invokeMethod<bool>('cut_paper');
+  Future<bool?> cutPaper(PrinterConfig config) async {
+    final Map<String, dynamic> arguments = config.toMap();
+    
+    return await methodChannel.invokeMethod<bool>('cut_paper', arguments);
   }
 
   @override
-  Future<bool?> checkPrinterConnection() async {
-    return await methodChannel.invokeMethod<bool>('check_printer_connection');
+  Future<bool?> checkPrinterConnection(PrinterConfig config) async {
+    final Map<String, dynamic> arguments = config.toMap();
+    
+    return await methodChannel.invokeMethod<bool>('check_printer_connection', arguments);
   }
 
   @override
@@ -59,5 +62,15 @@ class MethodChannelThermis extends ThermisPlatform {
   @override
   Future<void> stopDiscovery() async {
     await methodChannel.invokeMethod<void>('stop_discovery');
+  }
+  
+  @override
+  Future<int?> getQueueSize() async {
+    return await methodChannel.invokeMethod<int>('get_queue_size');
+  }
+  
+  @override
+  Future<bool?> clearPrintQueue() async {
+    return await methodChannel.invokeMethod<bool>('clear_print_queue');
   }
 }

@@ -67,7 +67,6 @@ class _HomeScreenState extends State<HomeScreen> {
     
     _showDiscoveryDialog();
 
-    Thermis.init(PrinterConfig(printerType: PrinterType.starmc));
     _discoverySubscription?.cancel();
     _discoverySubscription = Thermis.discoverPrinters().listen(
       (device) {
@@ -507,7 +506,6 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: () async {
-                  Thermis.init(PrinterConfig(printerType: PrinterType.generic));
                   final receiptDTOJSON = await rootBundle.loadString('assets/customer.json');
                   final imageBytes = await Thermis.getReceiptReview(receiptDTOJSON);
                   if (imageBytes != null && context.mounted) {
@@ -551,9 +549,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () async {
-                      await Thermis.init(PrinterConfig(
-                        printerType: PrinterType.generic,
-                      ));
                       final receiptDTOJSON = await rootBundle.loadString('assets/customer.json');
                       await Thermis.printReceipt(receiptDTOJSON);
                     },
@@ -605,17 +600,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () async {
-                      Thermis.init(PrinterConfig(
-                        printerType: PrinterType.starmc,
-                        printerMAC: selectedPrinter == '-' ? null : selectedPrinter,
+                      final receiptDTOJSON = await rootBundle.loadString('assets/customer.json');
+                      // Print to multiple devices simultaneously
+                      Thermis.printReceipt(receiptDTOJSON, config: PrinterConfig(
+                        printerType: PrinterType.starMCLan,
+                        macAddresses: selectedPrinter == '-' 
+                          ? [] // Demo multiple MACs
+                          : [selectedPrinter, selectedPrinter, selectedPrinter],
                       ));
-                      final receiptDTOJSON = await rootBundle.loadString('assets/kitchen.json');
-                      Thermis.printReceipt(receiptDTOJSON);
-                      Thermis.printReceipt(receiptDTOJSON);
-                      Thermis.printReceipt(receiptDTOJSON);
                     },
                     icon: const Icon(Icons.print),
-                    label: const Text('Test Print'),
+                    label: Text(selectedPrinter == '-' 
+                      ? 'Test Print (Multiple Devices)' 
+                      : 'Test Print (Selected Device)'),
                   ),
                 ],
               ),

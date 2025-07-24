@@ -26,8 +26,7 @@ import kotlinx.coroutines.Dispatchers
 
 object DantsuPrintManager : PrinterManager {
 
-    private lateinit var context: WeakReference<Context>
-
+    private var context: WeakReference<Context>? = null
 
     private const val ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION"
 
@@ -39,12 +38,12 @@ object DantsuPrintManager : PrinterManager {
         val result = CompletableDeferred<Boolean>()
         
         try {
-            val usbConnection: UsbConnection? = UsbPrintersConnections.selectFirstConnected(context.get())
-            val usbManager = context.get()?.getSystemService(Context.USB_SERVICE) as UsbManager?
+            val usbConnection: UsbConnection? = UsbPrintersConnections.selectFirstConnected(context?.get())
+            val usbManager = context?.get()?.getSystemService(Context.USB_SERVICE) as UsbManager?
 
             if (usbConnection != null && usbManager != null) {
                 val usbPermissionIntent = Intent(ACTION_USB_PERMISSION).apply {
-                    setPackage(context.get()?.packageName)
+                    setPackage(context?.get()?.packageName)
                 }
                 val usbPermissionIntentFilter = IntentFilter(ACTION_USB_PERMISSION)
 
@@ -90,20 +89,20 @@ object DantsuPrintManager : PrinterManager {
                 }
 
                 val permissionIntent = PendingIntent.getBroadcast(
-                    context.get(),
+                    context?.get(),
                     0,
                     usbPermissionIntent,
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
                 )
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    context.get()?.registerReceiver(
+                    context?.get()?.registerReceiver(
                         receiver,
                         usbPermissionIntentFilter,
                         Context.RECEIVER_NOT_EXPORTED
                     )
                 } else {
-                    context.get()?.registerReceiver(
+                    context?.get()?.registerReceiver(
                         receiver,
                         usbPermissionIntentFilter
                     )
@@ -178,9 +177,8 @@ object DantsuPrintManager : PrinterManager {
         }
     }
 
-
     override fun openCashDrawer() {
-        val usbConnection: UsbConnection? = UsbPrintersConnections.selectFirstConnected(context.get())
+        val usbConnection: UsbConnection? = UsbPrintersConnections.selectFirstConnected(context?.get())
         val printerRaw = EscPosPrinterCommands(usbConnection)
         printerRaw.connect()
         printerRaw.openCashBox()
@@ -188,7 +186,7 @@ object DantsuPrintManager : PrinterManager {
     }
 
     override fun cutPaper() {
-        val usbConnection: UsbConnection? = UsbPrintersConnections.selectFirstConnected(context.get())
+        val usbConnection: UsbConnection? = UsbPrintersConnections.selectFirstConnected(context?.get())
         val printerRaw = EscPosPrinterCommands(usbConnection)
         printerRaw.connect()
         printerRaw.cutPaper()
@@ -196,8 +194,6 @@ object DantsuPrintManager : PrinterManager {
     }
 
     override suspend fun checkConnection() : Boolean {
-        return UsbPrintersConnections.selectFirstConnected(context.get()) != null
+        return UsbPrintersConnections.selectFirstConnected(context?.get()) != null
     }
-
-
 }

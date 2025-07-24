@@ -28,23 +28,19 @@ abstract class ThermisPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<bool?> init(PrinterConfig config) {
-    throw UnimplementedError('init() has not been implemented.');
-  }
-
-  Future<void> printCHEQReceipt(String receiptDTOJSON) {
+  Future<bool?> printCHEQReceipt(String receiptDTOJSON, PrinterConfig config) {
     throw UnimplementedError('printCHEQReceipt() has not been implemented.');
   }
 
-  Future<bool?> openCashDrawer() {
+  Future<bool?> openCashDrawer(PrinterConfig config) {
     throw UnimplementedError('openCashDrawer() has not been implemented.');
   }
 
-  Future<bool?> cutPaper() {
+  Future<bool?> cutPaper(PrinterConfig config) {
     throw UnimplementedError('cutPaper() has not been implemented.');
   }
 
-  Future<bool?> checkPrinterConnection() {
+  Future<bool?> checkPrinterConnection(PrinterConfig config) {
     throw UnimplementedError('checkPrinterConnection() has not been implemented.');
   }
 
@@ -58,5 +54,13 @@ abstract class ThermisPlatform extends PlatformInterface {
 
   Future<void> stopDiscovery() {
     throw UnimplementedError('stopDiscovery() has not been implemented.');
+  }
+  
+  Future<int?> getQueueSize() {
+    throw UnimplementedError('getQueueSize() has not been implemented.');
+  }
+  
+  Future<bool?> clearPrintQueue() {
+    throw UnimplementedError('clearPrintQueue() has not been implemented.');
   }
 }
