@@ -35,16 +35,36 @@ class PrintResult {
   });
 
   factory PrintResult.fromMap(Map<String, dynamic> map) {
+    PrintFailureReason? reason;
+    if (map['reason'] != null) {
+      final reasonString = map['reason'].toString();
+      // Try to find by camelCase name first
+      reason = PrintFailureReason.values.firstWhere(
+        (e) => e.name == reasonString,
+        orElse: () {
+          // If not found, try to find by UPPER_CASE conversion
+          final upperCaseToEnum = {
+            'PRINTER_BUSY': PrintFailureReason.printerBusy,
+            'PRINTER_OFFLINE': PrintFailureReason.printerOffline,
+            'PRINTER_NOT_FOUND': PrintFailureReason.printerNotFound,
+            'OUT_OF_PAPER': PrintFailureReason.outOfPaper,
+            'COVER_OPEN': PrintFailureReason.coverOpen,
+            'NETWORK_ERROR': PrintFailureReason.networkError,
+            'COMMUNICATION_ERROR': PrintFailureReason.communicationError,
+            'DEVICE_IN_USE': PrintFailureReason.deviceInUse,
+            'TIMEOUT_ERROR': PrintFailureReason.timeoutError,
+            'UNKNOWN_ERROR': PrintFailureReason.unknownError,
+          };
+          return upperCaseToEnum[reasonString] ?? PrintFailureReason.unknownError;
+        },
+      );
+    }
+
     return PrintResult(
-      success: map['success'] ?? false,
-      reason: map['reason'] != null 
-          ? PrintFailureReason.values.firstWhere(
-              (e) => e.name == map['reason'],
-              orElse: () => PrintFailureReason.unknownError,
-            )
-          : null,
-      retryable: map['retryable'] ?? false,
-      message: map['message'],
+      success: map['success'] is bool ? map['success'] : (map['success'].toString().toLowerCase() == 'true'),
+      reason: reason,
+      retryable: map['retryable'] is bool ? map['retryable'] : (map['retryable'].toString().toLowerCase() == 'true'),
+      message: map['message']?.toString(),
     );
   }
 
