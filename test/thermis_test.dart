@@ -276,7 +276,7 @@ void main() {
 
   group('Receipt Preview Tests', () {
     test('getReceiptReview with valid data returns bitmap', () async {
-      final result = await Thermis.getReceiptReview('{"test": "receipt"}');
+      final result = await Thermis.getReceiptPreview('{"test": "receipt"}');
       
       expect(result, isNotNull);
       expect(result!.length, greaterThan(0));
@@ -284,7 +284,7 @@ void main() {
     });
 
     test('getReceiptReview with empty data returns null', () async {
-      final result = await Thermis.getReceiptReview('');
+      final result = await Thermis.getReceiptPreview('');
       
       expect(result, isNull);
     });
