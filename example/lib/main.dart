@@ -507,7 +507,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ElevatedButton.icon(
                 onPressed: () async {
                   final receiptDTOJSON = await rootBundle.loadString('assets/customer.json');
-                  final imageBytes = await Thermis.getReceiptReview(receiptDTOJSON);
+                  final imageBytes = await Thermis.getReceiptPreview(receiptDTOJSON);
                   if (imageBytes != null && context.mounted) {
                     await _showPreviewDialog(context, imageBytes);
                   }
