@@ -28,35 +28,51 @@ abstract class ThermisPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<bool?> init(PrinterConfig config) {
-    throw UnimplementedError('init() has not been implemented.');
-  }
-
-  Future<void> printReceipt(String receiptDTOJSON) {
+  Future<PrintResult?> printCHEQReceipt(String receiptDTOJson, {PrinterConfig? config}) {
     throw UnimplementedError('printCHEQReceipt() has not been implemented.');
   }
 
-  Future<bool?> openCashDrawer() {
+  Future<bool?> openCashDrawer(PrinterConfig config) {
     throw UnimplementedError('openCashDrawer() has not been implemented.');
   }
 
-  Future<bool?> cutPaper() {
+  Future<bool?> cutPaper(PrinterConfig config) {
     throw UnimplementedError('cutPaper() has not been implemented.');
   }
 
-  Future<bool?> checkPrinterConnection() {
+  Future<bool?> checkPrinterConnection(PrinterConfig config) {
     throw UnimplementedError('checkPrinterConnection() has not been implemented.');
   }
 
-  Future<Uint8List?> getReceiptPreview(String receiptDTOJSON) {
+  Future<Uint8List?> previewReceipt(String receiptDTOJSON) {
     throw UnimplementedError('previewReceipt() has not been implemented.');
   }
 
-  Stream<Device> discoverPrinters() {
+  Stream<Device> discoverPrinters({int scanDurationMs = 5000}) {
     throw UnimplementedError('discoverPrinters() has not been implemented.');
+  }
+  
+  Future<List<Device>> getAvailableDevices({int durationMs = 10000}) {
+    throw UnimplementedError('getAvailableDevices() has not been implemented.');
   }
 
   Future<void> stopDiscovery() {
     throw UnimplementedError('stopDiscovery() has not been implemented.');
+  }
+  
+  Future<int?> getQueueSize() {
+    throw UnimplementedError('getQueueSize() has not been implemented.');
+  }
+  
+  Future<Map<String, int>?> getDeviceQueueSizes() {
+    throw UnimplementedError('getDeviceQueueSizes() has not been implemented.');
+  }
+  
+  Future<bool?> clearPrintQueue() {
+    throw UnimplementedError('clearPrintQueue() has not been implemented.');
+  }
+  
+  Future<bool?> clearDeviceQueue(String deviceKey) {
+    throw UnimplementedError('clearDeviceQueue() has not been implemented.');
   }
 }

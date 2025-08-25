@@ -13,35 +13,51 @@ class MethodChannelThermis extends ThermisPlatform {
   final eventChannel = const EventChannel('thermis/starmc_discovery');
 
   @override
-  Future<bool?> init(PrinterConfig config) async {
-    final result = await methodChannel.invokeMethod<bool>('init', config.toMap());
-    return result;
+  Future<PrintResult?> printCHEQReceipt(String receiptDTOJson, {PrinterConfig? config}) async {
+    final arguments = <String, dynamic>{
+      'receiptDTO': receiptDTOJson,
+      'shouldOpenCashDrawer': false,
+    };
+    
+    // Add printer config if provided
+    if (config != null) {
+      arguments.addAll(config.toMap());
+    } else {
+      // Default to USB generic if no config provided
+      final defaultConfig = PrinterConfig(printerType: PrinterType.usbGeneric);
+      arguments.addAll(defaultConfig.toMap());
+    }
+
+    final result = await methodChannel.invokeMethod<Map>('print_cheq_receipt', arguments);
+    if (result != null) {
+      return PrintResult.fromMap(result.cast<String, dynamic>());
+    }
+    return null;
   }
 
   @override
-  Future<void> printReceipt(String receiptDTOJSON) async {
-    await methodChannel.invokeMethod<void>('print_receipt', {
-      'receipt_dto_json': receiptDTOJSON,
-    });
+  Future<bool?> openCashDrawer(PrinterConfig config) async {
+    final Map<String, dynamic> arguments = config.toMap();
+    
+    return await methodChannel.invokeMethod<bool>('open_cash_drawer', arguments);
   }
 
   @override
-  Future<bool?> openCashDrawer() async {
-    return await methodChannel.invokeMethod<bool>('open_cash_drawer');
+  Future<bool?> cutPaper(PrinterConfig config) async {
+    final Map<String, dynamic> arguments = config.toMap();
+    
+    return await methodChannel.invokeMethod<bool>('cut_paper', arguments);
   }
 
   @override
-  Future<bool?> cutPaper() async {
-    return await methodChannel.invokeMethod<bool>('cut_paper');
+  Future<bool?> checkPrinterConnection(PrinterConfig config) async {
+    final Map<String, dynamic> arguments = config.toMap();
+    
+    return await methodChannel.invokeMethod<bool>('check_printer_connection', arguments);
   }
 
   @override
-  Future<bool?> checkPrinterConnection() async {
-    return await methodChannel.invokeMethod<bool>('check_printer_connection');
-  }
-
-  @override
-  Future<Uint8List?> getReceiptPreview(String receiptDTOJSON) async {
+  Future<Uint8List?> previewReceipt(String receiptDTOJSON) async {
     final result = await methodChannel.invokeMethod<Uint8List>('get_receipt_preview', {
       'receipt_dto_json': receiptDTOJSON,
     });
@@ -49,15 +65,54 @@ class MethodChannelThermis extends ThermisPlatform {
   }
 
   @override
-  Stream<Device> discoverPrinters() {
-    return eventChannel.receiveBroadcastStream().map((dynamic event) {
+  Stream<Device> discoverPrinters({int scanDurationMs = 5000}) {
+    return eventChannel.receiveBroadcastStream({'durationMs': scanDurationMs}).map((dynamic event) {
       final Map<String, dynamic> deviceMap = Map<String, dynamic>.from(event);
       return Device.fromMap(deviceMap);
     });
+  }
+  
+  @override
+  Future<List<Device>> getAvailableDevices({int durationMs = 10000}) async {
+    final result = await methodChannel.invokeMethod<List>('get_available_devices', {
+      'durationMs': durationMs,
+    });
+    
+    if (result != null) {
+      return result.map((dynamic deviceMap) {
+        final Map<String, dynamic> map = Map<String, dynamic>.from(deviceMap);
+        return Device.fromMap(map);
+      }).toList();
+    }
+    
+    return [];
   }
 
   @override
   Future<void> stopDiscovery() async {
     await methodChannel.invokeMethod<void>('stop_discovery');
+  }
+  
+  @override
+  Future<int?> getQueueSize() async {
+    return await methodChannel.invokeMethod<int>('get_queue_size');
+  }
+  
+  @override
+  Future<Map<String, int>?> getDeviceQueueSizes() async {
+    final result = await methodChannel.invokeMethod<Map>('get_device_queue_sizes');
+    return result?.cast<String, int>();
+  }
+  
+  @override
+  Future<bool?> clearPrintQueue() async {
+    return await methodChannel.invokeMethod<bool>('clear_print_queue');
+  }
+  
+  @override
+  Future<bool?> clearDeviceQueue(String deviceKey) async {
+    return await methodChannel.invokeMethod<bool>('clear_device_queue', {
+      'device_key': deviceKey,
+    });
   }
 }

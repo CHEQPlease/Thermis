@@ -67,7 +67,6 @@ class _HomeScreenState extends State<HomeScreen> {
     
     _showDiscoveryDialog();
 
-    Thermis.init(PrinterConfig(printerType: PrinterType.starmc));
     _discoverySubscription?.cancel();
     _discoverySubscription = Thermis.discoverPrinters().listen(
       (device) {
@@ -507,7 +506,6 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: () async {
-                  Thermis.init(PrinterConfig(printerType: PrinterType.generic));
                   final receiptDTOJSON = await rootBundle.loadString('assets/customer.json');
                   final imageBytes = await Thermis.getReceiptPreview(receiptDTOJSON);
                   if (imageBytes != null && context.mounted) {
@@ -551,11 +549,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () async {
-                      await Thermis.init(PrinterConfig(
-                        printerType: PrinterType.generic,
-                      ));
                       final receiptDTOJSON = await rootBundle.loadString('assets/customer.json');
-                      await Thermis.printReceipt(receiptDTOJSON);
+                      final result = await Thermis.printReceipt(receiptDTOJSON);
+                      
+                      if (result?.success == true) {
+                        print('✅ USB Print successful');
+                      } else if (result != null) {
+                        print('❌ USB Print failed: ${result.reason?.displayName}');
+                        if (result.retryable) {
+                          print('   → Retryable error, system will auto-retry');
+                        }
+                        if (result.message != null) {
+                          print('   → Details: ${result.message}');
+                        }
+                      }
                     },
                     icon: const Icon(Icons.print),
                     label: const Text('Test Print'),
@@ -600,20 +607,82 @@ class _HomeScreenState extends State<HomeScreen> {
                       _startDiscovery();
                     },
                     icon: const Icon(Icons.search),
-                    label: const Text('Discover LAN Printers'),
+                    label: const Text('Discover LAN Printers (5s)'),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: _testDiscoveryWithDuration,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF9C27B0),
+                    ),
+                    icon: const Icon(Icons.timer),
+                    label: const Text('Discovery (3s Custom)'),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: _testGetAvailableDevices,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF607D8B),
+                    ),
+                    icon: const Icon(Icons.list),
+                    label: const Text('Get Available Devices (8s)'),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: _demonstrateAllDiscoveryMethods,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF795548),
+                    ),
+                    icon: const Icon(Icons.science),
+                    label: const Text('Demo All Discovery Methods'),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: _testParallelPrinting,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4CAF50),
+                    ),
+                    icon: const Icon(Icons.devices),
+                    label: const Text('Test Parallel Printing'),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: _checkDeviceQueues,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2196F3),
+                    ),
+                    icon: const Icon(Icons.queue_outlined),
+                    label: const Text('Check Device Queues'),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: _testErrorHandling,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF9800),
+                    ),
+                    icon: const Icon(Icons.error_outline),
+                    label: const Text('Test Error Handling'),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () async {
-                      Thermis.init(PrinterConfig(
-                        printerType: PrinterType.starmc,
-                        printerMAC: selectedPrinter == '-' ? null : selectedPrinter,
+                      final receiptDTOJSON = await rootBundle.loadString('assets/kitchen.json');
+
+                      
+                      // Print to multiple devices simultaneously
+                      await Thermis.printReceipt(receiptDTOJSON, config: PrinterConfig(
+                        printerType: PrinterType.starMCLan,
+                        macAddresses: selectedPrinter == '-' 
+                          ? [] // Demo multiple MACs
+                          : [selectedPrinter],
                       ));
-                      final receiptDTOJSON = await rootBundle.loadString('assets/customer.json');
-                      Thermis.printReceipt(receiptDTOJSON);
+
+                      // Display results
                     },
                     icon: const Icon(Icons.print),
-                    label: const Text('Test Print'),
+                    label: Text(selectedPrinter == '-' 
+                      ? 'Test Print (Multiple Devices)' 
+                      : 'Test Print (Selected Device)'),
                   ),
                 ],
               ),
@@ -622,5 +691,212 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _testParallelPrinting() async {
+    try {
+      print('Starting parallel print test...');
+      
+      // Test parallel printing to different devices
+      final usbConfig = PrinterConfig(printerType: PrinterType.usbGeneric);
+      final lan1Config = PrinterConfig(
+        printerType: PrinterType.starMCLan,
+        macAddresses: [selectedPrinter],
+      );
+      final lan2Config = PrinterConfig(
+        printerType: PrinterType.starMCLan,
+        macAddresses: ['11:22:33:44:55:66'],
+      );
+
+      // These will execute in parallel (different device queues)
+      final futures = [
+        Thermis.printReceipt('{"test": "USB printer"}', config: usbConfig),
+        Thermis.printReceipt('{"test": "LAN printer 1"}', config: lan1Config),
+        Thermis.printReceipt('{"test": "LAN printer 2"}', config: lan2Config),
+      ];
+
+      final results = await Future.wait(futures);
+      
+      // Display detailed results
+      for (int i = 0; i < results.length; i++) {
+        final result = results[i];
+        final printerName = ['USB', 'LAN1', 'LAN2'][i];
+        
+        if (result?.success == true) {
+          print('✅ $printerName: Print successful');
+        } else if (result != null) {
+          print('❌ $printerName: ${result.reason?.displayName ?? 'Unknown error'}');
+          if (result.retryable) {
+            print('   → This error is retryable');
+          }
+          if (result.message != null) {
+            print('   → Details: ${result.message}');
+          }
+        } else {
+          print('❌ $printerName: No result returned');
+        }
+      }
+      
+      print('Parallel Print Test Complete');
+    } catch (e) {
+      print('Parallel Print Error: $e');
+    }
+  }
+
+  Future<void> _testErrorHandling() async {
+    try {
+      print('Testing error handling with invalid printer...');
+      
+      // Test with invalid MAC address to trigger error
+      final invalidConfig = PrinterConfig(
+        printerType: PrinterType.starMCLan,
+        macAddresses: ['INVALID:MAC:ADDRESS'],
+      );
+
+      final result = await Thermis.printReceipt('{"test": "Error test"}', config: invalidConfig);
+      
+      if (result?.success == true) {
+        print('✅ Print successful (unexpected!)');
+      } else if (result != null) {
+        print('❌ Print failed as expected:');
+        print('   → Reason: ${result.reason?.displayName ?? 'Unknown'}');
+        print('   → Retryable: ${result.retryable}');
+        print('   → Message: ${result.message ?? 'No details'}');
+        
+        if (result.retryable) {
+          print('   → ⚡ This error would be automatically retried by the system');
+        } else {
+          print('   → 🚫 This error would not be retried');
+        }
+      } else {
+        print('❌ No result returned');
+      }
+    } catch (e) {
+      print('Error Handling Test Error: $e');
+    }
+  }
+
+  Future<void> _checkDeviceQueues() async {
+    try {
+      final deviceQueues = await Thermis.getDeviceQueueSizes();
+      final totalQueue = await Thermis.getQueueSize();
+      print('Total Queue: $totalQueue');
+      print('Device Queues: $deviceQueues');
+    } catch (e) {
+      print('Queue Check Error: $e');
+    }
+  }
+
+  Future<void> _testDiscoveryWithDuration() async {
+    print('🔍 Testing discovery with 3-second duration...');
+    
+    setState(() {
+      isDiscovering = true;
+      discoveredPrinters.clear();
+    });
+
+    _discoverySubscription?.cancel();
+    _discoverySubscription = Thermis.discoverPrinters(scanDurationMs: 3000).listen(
+      (device) {
+        setState(() {
+          discoveredPrinters.add(device);
+        });
+        print('📱 Found device: ${device.deviceName} (${device.mac})');
+      },
+      onError: (error) {
+        print('❌ Discovery error: $error');
+        setState(() {
+          isDiscovering = false;
+        });
+      },
+      onDone: () {
+        print('✅ Discovery completed after 3 seconds');
+        setState(() {
+          isDiscovering = false;
+        });
+      },
+    );
+  }
+
+  Future<void> _testGetAvailableDevices() async {
+    print('📋 Testing getAvailableDevices with 8-second duration...');
+    
+    try {
+      final devices = await Thermis.getAvailableDevices(durationMs: 8000);
+      
+      print('📊 Discovery Results:');
+      print('   Found ${devices.length} device(s)');
+      
+      for (int i = 0; i < devices.length; i++) {
+        final device = devices[i];
+        print('   ${i + 1}. ${device.deviceName} - ${device.mac} (${device.ip})');
+      }
+      
+      setState(() {
+        discoveredPrinters = devices;
+      });
+      
+    } catch (e) {
+      print('❌ getAvailableDevices error: $e');
+    }
+  }
+
+  Future<void> _demonstrateAllDiscoveryMethods() async {
+    print('\n🚀 === COMPREHENSIVE DISCOVERY DEMO ===');
+    
+    // Method 1: discoverPrinters with default duration (5s)
+    print('\n1️⃣ Testing discoverPrinters() - Stream with 5s default duration:');
+    
+    final devices1 = <Device>[];
+    final subscription1 = Thermis.discoverPrinters().listen(
+      (device) {
+        devices1.add(device);
+        print('   📱 Stream (5s default): Found ${device.deviceName} (${device.mac})');
+      },
+      onDone: () {
+        print('   ✅ Stream completed - Found ${devices1.length} device(s)');
+      },
+    );
+    
+    await Future.delayed(const Duration(seconds: 6)); // Wait for completion
+    subscription1.cancel();
+    
+    // Method 2: discoverPrinters with custom duration (8s)
+    print('\n2️⃣ Testing discoverPrinters(scanDurationMs: 8000) - Stream with 8s custom duration:');
+    
+    final devices2 = <Device>[];
+    final subscription2 = Thermis.discoverPrinters(scanDurationMs: 8000).listen(
+      (device) {
+        devices2.add(device);
+        print('   📱 Stream (8s): Found ${device.deviceName} (${device.mac})');
+      },
+      onDone: () {
+        print('   ✅ Stream (8s) completed - Found ${devices2.length} device(s)');
+      },
+    );
+    
+    await Future.delayed(const Duration(seconds: 9)); // Wait for completion
+    subscription2.cancel();
+    
+    // Method 3: getAvailableDevices (Future<List>, custom duration)
+    print('\n3️⃣ Testing getAvailableDevices(durationMs: 6000) - Future<List> with 6s duration:');
+    
+    try {
+      final devices3 = await Thermis.getAvailableDevices(durationMs: 6000);
+      print('   ✅ Future<List> completed - Found ${devices3.length} device(s)');
+      
+      for (int i = 0; i < devices3.length; i++) {
+        final device = devices3[i];
+        print('   📱 List[$i]: ${device.deviceName} (${device.mac}) - ${device.ip}');
+      }
+    } catch (e) {
+      print('   ❌ Future<List> error: $e');
+    }
+    
+    print('\n📊 === DISCOVERY COMPARISON SUMMARY ===');
+    print('Method 1 (Stream, 5s default): ${devices1.length} devices');
+    print('Method 2 (Stream, 8s custom):   ${devices2.length} devices');  
+    print('Method 3 (Future<List>, 6s):    Found devices via await');
+    print('===========================================\n');
   }
 }

@@ -11,9 +11,9 @@ class Device {
 
   factory Device.fromMap(Map<String, dynamic> map) {
     return Device(
-      deviceName: map['deviceName'] as String,
-      ip: map['ip'] as String,
-      mac: map['mac'] as String,
+      deviceName: map['deviceName'] as String? ?? 'Unknown',
+      ip: map['ip'] as String? ?? 'Unknown',
+      mac: map['mac'] as String? ?? 'Unknown',
     );
   }
 
@@ -23,5 +23,10 @@ class Device {
       'ip': ip,
       'mac': mac,
     };
+  }
+
+  @override
+  String toString() {
+    return 'Device(deviceName: $deviceName, mac: $mac, ip: $ip)';
   }
 } 

@@ -32,6 +32,17 @@ class ThermisPlugin : FlutterPlugin, MethodCallHandler {
         eventChannel = EventChannel(flutterPluginBinding.binaryMessenger, "thermis/starmc_discovery")
         eventChannel.setStreamHandler(object : EventChannel.StreamHandler {
             override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                // Initialize StarPrinterManager with context for discovery
+                val discoveryConfig = PrinterConfig(
+                    context = applicationContext,
+                    printerType = PrinterType.STARMC_LAN,
+                    macAddresses = null
+                )
+                StarPrinterManager.init(discoveryConfig)
+                
+                // Get duration from arguments if provided
+                val durationMs = (arguments as? Map<*, *>)?.get("durationMs") as? Int ?: 5000
+                StarPrinterManager.setDiscoveryDuration(durationMs)
                 StarPrinterManager.setEventSink(events)
             }
 
@@ -39,44 +50,92 @@ class ThermisPlugin : FlutterPlugin, MethodCallHandler {
                 StarPrinterManager.setEventSink(null)
             }
         })
+        
+        // Initialize ThermisManager with context
+        ThermisManager.init(applicationContext)
+    }
+
+    private fun createPrinterConfig(call: MethodCall): PrinterConfig? {
+        val printerTypeString = call.argument<String>("printer_type") ?: return null
+        val macAddresses = call.argument<List<String>>("mac_addresses")
+        
+        val printerType = when (printerTypeString.lowercase()) {
+            "usbgeneric" -> PrinterType.USB_GENERIC
+            "starmclan" -> PrinterType.STARMC_LAN
+            else -> return null
+        }
+        
+        return PrinterConfig(
+            context = applicationContext,
+            printerType = printerType,
+            macAddresses = macAddresses
+        )
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         when (call.method) {
-            "init" -> {
-                val printerTypeString = call.argument<String>("printer_type") ?: "GENERIC"
-                val printerType = PrinterType.valueOf(printerTypeString.uppercase())
-                val macAddress = call.argument<String>("printer_mac")
-                val config = PrinterConfig(
-                    context = applicationContext,
-                    printerType = printerType,
-                    macAddress = macAddress
-                )
-                ThermisManager.init(config)
-                result.success(true)
+            "print_cheq_receipt" -> {
+                val receiptDTO = call.argument<String>("receiptDTO")
+                val shouldOpenCashDrawer = call.argument<Boolean>("shouldOpenCashDrawer") ?: false
+                val config = createPrinterConfig(call)
+                
+                if (receiptDTO != null && config != null) {
+                    coroutineScope.launch {
+                        try {
+                            val printResult = ThermisManager.printCheqReceipt(receiptDTO, config, shouldOpenCashDrawer)
+                            result.success(printResult.toMap())
+                        } catch (e: Exception) {
+                            val errorResult = PrintResult.Failed(
+                                PrintFailureReason.UNKNOWN_ERROR,
+                                false,
+                                e.message ?: "Unknown error occurred"
+                            )
+                            result.success(errorResult.toMap())
+                        }
+                    }
+                } else {
+                    val errorResult = PrintResult.Failed(
+                        PrintFailureReason.UNKNOWN_ERROR,
+                        false,
+                        "Missing required parameters: receiptDTO or printer configuration"
+                    )
+                    result.success(errorResult.toMap())
+                }
             }
-            "print_receipt" -> {
-                val receiptDTO = call.argument<String>("receipt_dto_json")
-                val openCashDrawer = call.argument<Boolean>("open_cash_drawer") ?: false
-                if (receiptDTO != null) {
-                    ThermisManager.printCheqReceipt(receiptDTO, openCashDrawer)
-                    result.success(true)
+            "open_cash_drawer" -> {
+                val config = createPrinterConfig(call)
+                
+                if (config != null) {
+                    coroutineScope.launch {
+                        val success = ThermisManager.openCashDrawer(config)
+                        result.success(success)
+                    }
                 } else {
                     result.success(false)
                 }
             }
-            "open_cash_drawer" -> {
-                ThermisManager.openCashDrawer()
-                result.success(true)
-            }
             "cut_paper" -> {
-                ThermisManager.cutPaper()
-                result.success(true)
+                val config = createPrinterConfig(call)
+                
+                if (config != null) {
+                    coroutineScope.launch {
+                        val success = ThermisManager.cutPaper(config)
+                        result.success(success)
+                    }
+                } else {
+                    result.success(false)
+                }
             }
             "check_printer_connection" -> {
-                coroutineScope.launch {
-                    val isConnected = ThermisManager.checkPrinterConnection()
-                    result.success(isConnected)
+                val config = createPrinterConfig(call)
+                
+                if (config != null) {
+                    coroutineScope.launch {
+                        val isConnected = ThermisManager.checkPrinterConnection(config)
+                        result.success(isConnected)
+                    }
+                } else {
+                    result.success(false)
                 }
             }
             "get_receipt_preview" -> {
@@ -101,6 +160,50 @@ class ThermisPlugin : FlutterPlugin, MethodCallHandler {
                 StarPrinterManager.stopDiscovery()
                 result.success(null)
             }
+            "get_available_devices" -> {
+                val durationMs = call.argument<Int>("durationMs") ?: 10000
+                coroutineScope.launch {
+                    try {
+                        // Initialize StarPrinterManager with context for discovery
+                        val discoveryConfig = PrinterConfig(
+                            context = applicationContext,
+                            printerType = PrinterType.STARMC_LAN,
+                            macAddresses = null
+                        )
+                        StarPrinterManager.init(discoveryConfig)
+                        
+                        val devices = StarPrinterManager.getAvailableDevices(durationMs)
+                        result.success(devices)
+                    } catch (e: Exception) {
+                        result.error("DISCOVERY_ERROR", e.message, null)
+                    }
+                }
+            }
+            "get_queue_size" -> {
+                val queueSize = ThermisManager.getQueueSize()
+                result.success(queueSize)
+            }
+            "get_device_queue_sizes" -> {
+                val deviceQueueSizes = ThermisManager.getDeviceQueueSizes()
+                result.success(deviceQueueSizes)
+            }
+            "clear_print_queue" -> {
+                coroutineScope.launch {
+                    ThermisManager.clearQueue()
+                    result.success(true)
+                }
+            }
+            "clear_device_queue" -> {
+                val deviceKey = call.argument<String>("device_key")
+                if (deviceKey != null) {
+                    coroutineScope.launch {
+                        ThermisManager.clearDeviceQueue(deviceKey)
+                        result.success(true)
+                    }
+                } else {
+                    result.success(false)
+                }
+            }
             else -> {
                 result.notImplemented()
             }
@@ -111,5 +214,6 @@ class ThermisPlugin : FlutterPlugin, MethodCallHandler {
         channel.setMethodCallHandler(null)
         eventChannel.setStreamHandler(null)
         StarPrinterManager.stopDiscovery()
+        ThermisManager.destroy()
     }
 }

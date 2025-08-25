@@ -7,51 +7,54 @@ import 'package:thermis/device.dart';
 import 'thermis_platform_interface.dart';
 
 class Thermis {
-  static bool _isInitialized = false;
-
-  static Future<bool?> init(PrinterConfig config) async {
-    final result = await ThermisPlatform.instance.init(config);
-    _isInitialized = result ?? false;
-    return result;
+  static Future<PrintResult?> printReceipt(String receiptDTOJson, {PrinterConfig? config}) {
+    return ThermisPlatform.instance.printCHEQReceipt(receiptDTOJson, config: config);
   }
 
-  static void _checkInitialization() {
-    if (!_isInitialized) {
-      throw StateError('Thermis must be initialized before using any printer operations. Call Thermis.init() first.');
-    }
+  static Future<bool?> openCashDrawer({PrinterConfig? config}) {
+    config ??= PrinterConfig(printerType: PrinterType.usbGeneric);
+    return ThermisPlatform.instance.openCashDrawer(config);
   }
 
-  static Future<void> printReceipt(String receiptDTOJSON) {
-    _checkInitialization();
-    return ThermisPlatform.instance.printReceipt(receiptDTOJSON);
+  static Future<bool?> cutPaper({PrinterConfig? config}) {
+    config ??= PrinterConfig(printerType: PrinterType.usbGeneric);
+    return ThermisPlatform.instance.cutPaper(config);
   }
 
-  static Future<bool?> openCashDrawer() {
-    _checkInitialization();
-    return ThermisPlatform.instance.openCashDrawer();
+  static Future<bool?> checkPrinterConnection({PrinterConfig? config}) {
+    config ??= PrinterConfig(printerType: PrinterType.usbGeneric);
+    return ThermisPlatform.instance.checkPrinterConnection(config);
   }
 
-  static Future<bool?> cutPaper() {
-    _checkInitialization();
-    return ThermisPlatform.instance.cutPaper();
+  static Future<Uint8List?> getReceiptReview(String receiptDTOJSON) {
+    return ThermisPlatform.instance.previewReceipt(receiptDTOJSON);
   }
 
-  static Future<bool?> checkPrinterConnection() {
-    _checkInitialization();
-    return ThermisPlatform.instance.checkPrinterConnection();
+  static Stream<Device> discoverPrinters({int scanDurationMs = 5000}) {
+    return ThermisPlatform.instance.discoverPrinters(scanDurationMs: scanDurationMs);
   }
-
-  static Future<Uint8List?> getReceiptPreview(String receiptDTOJSON) {
-    return ThermisPlatform.instance.getReceiptPreview(receiptDTOJSON);
-  }
-
-  static Stream<Device> discoverPrinters() {
-    _checkInitialization();
-    return ThermisPlatform.instance.discoverPrinters();
+  
+  static Future<List<Device>> getAvailableDevices({int durationMs = 50000}) {
+    return ThermisPlatform.instance.getAvailableDevices(durationMs: durationMs);
   }
 
   static Future<void> stopDiscovery() {
-    _checkInitialization();
     return ThermisPlatform.instance.stopDiscovery();
+  }
+  
+  static Future<int?> getQueueSize() {
+    return ThermisPlatform.instance.getQueueSize();
+  }
+  
+  static Future<Map<String, int>?> getDeviceQueueSizes() {
+    return ThermisPlatform.instance.getDeviceQueueSizes();
+  }
+  
+  static Future<bool?> clearPrintQueue() {
+    return ThermisPlatform.instance.clearPrintQueue();
+  }
+  
+  static Future<bool?> clearDeviceQueue(String deviceKey) {
+    return ThermisPlatform.instance.clearDeviceQueue(deviceKey);
   }
 }
