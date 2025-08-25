@@ -36,7 +36,7 @@ object StarPrinterManager : PrinterManager {
     
     // Retry configuration
     private const val MAX_RETRIES = 3
-    private const val BASE_RETRY_DELAY_MS = 3000L
+    private const val BASE_RETRY_DELAY_MS = 5000L
     private const val OPERATION_TIMEOUT_MS = 30000L // 30 seconds
 
     override fun init(config: PrinterConfig) {
