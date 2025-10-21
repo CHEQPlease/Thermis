@@ -506,7 +506,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: () async {
-                  final receiptDTOJSON = await rootBundle.loadString('assets/customer.json');
+                  final receiptDTOJSON = await rootBundle.loadString('assets/time_sheet.json');
                   final imageBytes = await Thermis.getReceiptPreview(receiptDTOJSON);
                   if (imageBytes != null && context.mounted) {
                     await _showPreviewDialog(context, imageBytes);
@@ -549,7 +549,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () async {
-                      final receiptDTOJSON = await rootBundle.loadString('assets/customer.json');
+                      final receiptDTOJSON = await rootBundle.loadString('assets/time_sheet.json');
                       final result = await Thermis.printReceipt(receiptDTOJSON);
                       
                       if (result?.success == true) {

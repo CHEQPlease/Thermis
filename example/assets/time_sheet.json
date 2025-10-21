@@ -1,0 +1,14 @@
+{
+  "companyName": "CANTALOUPE",
+  "brandName": "CHEQ Diner",
+  "deviceType": "pos",
+  "receiptType": "TIME_SHEET",
+  "excludeCompanyNameWatermark": false,
+  "timeSheetInfo": {
+    "employeeName": "John Smith",
+    "date": "Tuesday, January 21, 2025",
+    "totalWorkTime": "08:15",
+    "breakTime": "00:45",
+    "totalTips": "$75.00"
+  }
+}
