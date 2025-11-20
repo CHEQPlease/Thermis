@@ -1,6 +1,6 @@
 name: thermis
 description: A new Flutter plugin to print thermal receipts using Thermal printers.
-version: 2.1.1+2001001
+version: 2.1.2+2001002
 homepage:
 
 environment:
